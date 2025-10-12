@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criação de Personagem - RPG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'bg-light': '#FFFFFF',
+                        'bg-dark': '#181818'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .dice {
+            transition: transform 0.3s ease;
+        }
+        .dice:hover {
+            transform: scale(1.05);
+        }
+        .rolling {
+            animation: roll 0.5s ease-in-out;
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .stat-bar {
+            transition: all 0.3s ease;
+        }
+        .stat-locked {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+    </style>
+</head>
+<body class="bg-bg-light dark:bg-bg-dark text-gray-900 dark:text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2 text-primary">Criação de Personagem</h1>
+            <p class="text-gray-600 dark:text-gray-400">Role os dados e distribua seus pontos de atributo</p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-8">
+            <!-- Seção de Dados -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Sistema de Dados</h2>
+                
+                <!-- Informações do Sistema -->
+                <div class="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        <strong>Regras:</strong>
+                    </p>
+                    <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                        <li>• Comece com 2 dados de 16 faces</li>
+                        <li>• Role primeiro, depois pode adicionar dados</li>
+                        <li>• 1º dado extra: 20+ pontos na rolagem</li>
+                        <li>• 2º dado extra: 40+ pontos na rolagem</li>
+                        <li>• Máximo: 4 dados (4-64 pontos)</li>
+                    </ul>
+                </div>
+
+                <!-- Dados Visuais -->
+                <div class="text-center mb-6">
+                    <div class="flex justify-center space-x-4 mb-4" id="diceContainer">
+                        <!-- Dados serão gerados aqui -->
+                    </div>
+                    <div class="text-lg font-semibold mb-4">
+                        Dados Ativos: <span id="activeDice">2</span>/4
+                    </div>
+                </div>
+
+                <!-- Controles -->
+                <div class="space-y-4">
+                    <button id="addDiceBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors" disabled>
+                        Adicionar Dado (+1)
+                    </button>
+                    <button id="rollDiceBtn" class="w-full bg-primary hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                        Rolar Dados
+                    </button>
+                </div>
+
+                <!-- Resultado -->
+                <div class="mt-6 text-center">
+                    <div class="text-2xl font-bold mb-2">
+                        Pontos Disponíveis: <span id="totalPoints">0</span>
+                    </div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        Rolagens: <span id="rollCount">0</span>/∞
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção de Atributos -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-center">Distribuição de Atributos</h2>
+                
+                <div class="mb-4 text-center">
+                    <div class="text-lg font-semibold">
+                        Pontos Restantes: <span id="remainingPoints">0</span>
+                    </div>
+                </div>
+
+                <!-- Lista de Atributos -->
+                <div class="space-y-3" id="statsContainer">
+                    <!-- Atributos serão gerados aqui -->
+                </div>
+
+                <!-- Botão Finalizar -->
+                <button id="finalizeBuildBtn" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors" disabled>
+                    Finalizar Build
+                </button>
+
+                <!-- Aviso -->
+                <div class="mt-4 p-3 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded">
+                    <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                        ⚠️ Atributos sem pontos adicionais serão bloqueados!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do modo escuro
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Estado do jogo
+        let gameState = {
+            activeDice: 2,
+            rollCount: 0,
+            totalPoints: 0,
+            remainingPoints: 0,
+            canAddDice: true,
+            buildFinalized: false,
+            stats: {
+                'Constituição': { base: 10, added: 0, locked: false },
+                'Sabedoria': { base: 10, added: 0, locked: false },
+                'Inteligência': { base: 10, added: 0, locked: false },
+                'Carisma': { base: 10, added: 0, locked: false },
+                'Força': { base: 10, added: 0, locked: false },
+                'Destreza': { base: 10, added: 0, locked: false },
+                'Ataque': { base: 10, added: 0, locked: false },
+                'Defesa': { base: 10, added: 0, locked: false },
+                'Velocidade': { base: 10, added: 0, locked: false },
+                'Mana': { base: 10, added: 0, locked: false },
+                'Poder Mágico': { base: 10, added: 0, locked: false },
+                'Resistência Mágica': { base: 10, added: 0, locked: false },
+                'Sorte': { base: 10, added: 0, locked: false },
+                'Arcanismo': { base: 10, added: 0, locked: false }
+            }
+        };
+
+        // Elementos DOM
+        const diceContainer = document.getElementById('diceContainer');
+        const activeDiceSpan = document.getElementById('activeDice');
+        const addDiceBtn = document.getElementById('addDiceBtn');
+        const rollDiceBtn = document.getElementById('rollDiceBtn');
+        const totalPointsSpan = document.getElementById('totalPoints');
+        const rollCountSpan = document.getElementById('rollCount');
+        const remainingPointsSpan = document.getElementById('remainingPoints');
+        const statsContainer = document.getElementById('statsContainer');
+        const finalizeBuildBtn = document.getElementById('finalizeBuildBtn');
+
+        // Função para criar dados visuais
+        function createDiceVisual() {
+            const dice = document.createElement('div');
+            dice.className = 'dice w-16 h-16 bg-gray-200 dark:bg-gray-600 border-2 border-gray-400 dark:border-gray-500 rounded-lg flex items-center justify-center text-xl font-bold cursor-pointer';
+            dice.textContent = '?';
+            return dice;
+        }
+
+        // Função para atualizar a exibição dos dados
+        function updateDiceDisplay() {
+            diceContainer.innerHTML = '';
+            for (let i = 0; i < gameState.activeDice; i++) {
+                diceContainer.appendChild(createDiceVisual());
+            }
+            activeDiceSpan.textContent = gameState.activeDice;
+            
+            // Atualizar botão de adicionar dado baseado na pontuação atual
+            updateAddDiceButton();
+        }
+
+        // Função para atualizar o botão de adicionar dado
+        function updateAddDiceButton() {
+            const currentPoints = gameState.totalPoints;
+            const diceCount = gameState.activeDice;
+
+            // Verificar se o número máximo de dados foi atingido
+            if (diceCount >= 4) {
+                addDiceBtn.textContent = 'Máximo de dados atingido';
+                addDiceBtn.disabled = true;
+                return;
+            }
+
+            // Verificar se o jogador pode adicionar um dado com base nos pontos
+            if (diceCount === 2) {
+                if (currentPoints >= 20) {
+                    addDiceBtn.textContent = 'Adicionar 3º Dado (20+ pontos)';
+                    addDiceBtn.disabled = false;
+                } else {
+                    addDiceBtn.textContent = `Precisa de 20+ pontos (atual: ${currentPoints})`;
+                    addDiceBtn.disabled = true;
+                }
+            } else if (diceCount === 3) {
+                if (currentPoints >= 40) {
+                    addDiceBtn.textContent = 'Adicionar 4º Dado (40+ pontos)';
+                    addDiceBtn.disabled = false;
+                } else {
+                    addDiceBtn.textContent = `Precisa de 40+ pontos (atual: ${currentPoints})`;
+                    addDiceBtn.disabled = true;
+                }
+            }
+        }
+
+        // Função para rolar dados
+        function rollDice() {
+            const diceElements = diceContainer.querySelectorAll('.dice');
+            let total = 0;
+
+            // Animação de rolagem
+            diceElements.forEach(dice => {
+                dice.classList.add('rolling');
+                dice.textContent = '...';
+            });
+
+            setTimeout(() => {
+                diceElements.forEach(dice => {
+                    const result = Math.floor(Math.random() * 16) + 1;
+                    dice.textContent = result;
+                    dice.classList.remove('rolling');
+                    total += result;
+                });
+
+                // Atualizar o estado com o total calculado
+                gameState.totalPoints = total;
+                gameState.remainingPoints = total; // Garantir que os pontos restantes sejam iguais ao total inicial
+                gameState.rollCount++;
+
+                // Atualizar a exibição e o botão
+                updateDisplay();
+                updateAddDiceButton(); // Garantir que o botão seja atualizado imediatamente
+            }, 500);
+        }
+
+        // Função para adicionar dado
+        function addDice() {
+            const currentPoints = gameState.totalPoints;
+            const diceCount = gameState.activeDice;
+            
+            // Verificar se pode adicionar dado baseado na pontuação
+            let canAdd = false;
+            
+            if (diceCount === 2 && currentPoints >= 20) {
+                canAdd = true;
+            } else if (diceCount === 3 && currentPoints >= 40) {
+                canAdd = true;
+            }
+            
+            if (canAdd && diceCount < 4 && gameState.rollCount > 0) {
+                gameState.activeDice++;
+                updateDiceDisplay();
+            }
+        }
+
+        // Função para criar um atributo
+        function createStatElement(statName, statData) {
+            const statDiv = document.createElement('div');
+            statDiv.className = `stat-bar p-4 border rounded-lg ${statData.locked ? 'stat-locked border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'}`;
+            
+            statDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-semibold">${statName}</span>
+                    <span class="text-lg font-bold">${statData.base + statData.added}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <button class="stat-decrease w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full text-lg font-bold ${statData.added <= 0 || statData.locked ? 'opacity-50 cursor-not-allowed' : ''}" 
+                            data-stat="${statName}" ${statData.added <= 0 || statData.locked ? 'disabled' : ''}>-</button>
+                    <div class="flex-1 mx-4">
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                            <div class="bg-primary h-3 rounded-full transition-all duration-300" style="width: ${(statData.added / 10) * 100}%"></div>
+                        </div>
+                        <div class="text-center text-sm mt-1 text-gray-600 dark:text-gray-400">
+                            +${statData.added}/10
+                        </div>
+                    </div>
+                    <button class="stat-increase w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full text-lg font-bold ${statData.added >= 10 || gameState.remainingPoints <= 0 || statData.locked ? 'opacity-50 cursor-not-allowed' : ''}" 
+                            data-stat="${statName}" ${statData.added >= 10 || gameState.remainingPoints <= 0 || statData.locked ? 'disabled' : ''}>+</button>
+                </div>
+            `;
+            
+            return statDiv;
+        }
+
+        // Função para atualizar a exibição dos atributos
+        function updateStatsDisplay() {
+            statsContainer.innerHTML = '';
+            
+            Object.entries(gameState.stats).forEach(([statName, statData]) => {
+                const statElement = createStatElement(statName, statData);
+                statsContainer.appendChild(statElement);
+            });
+
+            // Adicionar event listeners
+            document.querySelectorAll('.stat-increase').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const statName = e.target.dataset.stat;
+                    increaseStat(statName);
+                });
+            });
+
+            document.querySelectorAll('.stat-decrease').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const statName = e.target.dataset.stat;
+                    decreaseStat(statName);
+                });
+            });
+        }
+
+        // Função para aumentar atributo
+        function increaseStat(statName) {
+            const stat = gameState.stats[statName];
+            if (stat.added < 10 && gameState.remainingPoints > 0 && !stat.locked) {
+                stat.added++;
+                gameState.remainingPoints--;
+                updateDisplay();
+            }
+        }
+
+        // Função para diminuir atributo
+        function decreaseStat(statName) {
+            const stat = gameState.stats[statName];
+            if (stat.added > 0 && !stat.locked) {
+                stat.added--;
+                gameState.remainingPoints++;
+                updateDisplay();
+            }
+        }
+
+        // Função para finalizar build
+        function finalizeBuild() {
+            if (gameState.buildFinalized) return;
+
+            // Bloquear atributos sem pontos adicionais
+            Object.entries(gameState.stats).forEach(([statName, statData]) => {
+                if (statData.added === 0) {
+                    statData.locked = true;
+                }
+            });
+
+            gameState.buildFinalized = true;
+            finalizeBuildBtn.textContent = 'Build Finalizada!';
+            finalizeBuildBtn.disabled = true;
+            
+            updateDisplay();
+            
+            // Mostrar resumo
+            showBuildSummary();
+        }
+
+        // Função para mostrar resumo da build
+        function showBuildSummary() {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            
+            const activeStats = Object.entries(gameState.stats)
+                .filter(([_, stat]) => !stat.locked)
+                .map(([name, stat]) => `${name}: ${stat.base + stat.added}`)
+                .join('<br>');
+            
+            const lockedStats = Object.entries(gameState.stats)
+                .filter(([_, stat]) => stat.locked)
+                .map(([name, _]) => name)
+                .join(', ');
+
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
+                    <h3 class="text-xl font-bold mb-4 text-center">Build Finalizada!</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-green-600 dark:text-green-400">Atributos Ativos:</h4>
+                            <div class="text-sm mt-2">${activeStats}</div>
+                        </div>
+                        ${lockedStats ? `
+                        <div>
+                            <h4 class="font-semibold text-red-600 dark:text-red-400">Atributos Bloqueados:</h4>
+                            <div class="text-sm mt-2">${lockedStats}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    <button class="w-full mt-6 bg-primary hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg" onclick="this.closest('.fixed').remove()">
+                        Fechar
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // Função para atualizar toda a exibição
+        function updateDisplay() {
+            totalPointsSpan.textContent = gameState.totalPoints;
+            rollCountSpan.textContent = gameState.rollCount;
+            remainingPointsSpan.textContent = gameState.remainingPoints;
+            
+            updateStatsDisplay();
+            
+            // Habilitar botão de finalizar se houver pontos distribuídos
+            const hasDistributedPoints = Object.values(gameState.stats).some(stat => stat.added > 0);
+            finalizeBuildBtn.disabled = !hasDistributedPoints || gameState.buildFinalized;
+        }
+
+        // Event listeners
+        addDiceBtn.addEventListener('click', addDice);
+        rollDiceBtn.addEventListener('click', rollDice);
+        finalizeBuildBtn.addEventListener('click', finalizeBuild);
+
+        // Inicialização
+        updateDiceDisplay();
+        updateStatsDisplay();
+    </script>
+</body>
+</html>
