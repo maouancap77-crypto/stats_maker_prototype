@@ -390,7 +390,7 @@
             statDiv.innerHTML = `
                 <div class="flex justify-between items-center mb-2">
                     <span class="font-semibold text-secondary" style="font-family:'UnifrakturCook',cursive; font-size:1.25rem;">${statName}</span>
-                    <span class="text-xl font-bold text-primary" style="font-family:'MedievalSharp',cursive;">${statData.base + statData.added}</span>
+                    <span class="text-xl font-bold text-primary" style="font-family:'MedievalSharp',cursive;">${statData.added}</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <button class="stat-decrease w-8 h-8 fantasy-btn rounded-full text-lg font-bold ${statData.added <= 0 || statData.locked ? 'opacity-50 cursor-not-allowed' : ''}" data-stat="${statName}" ${statData.added <= 0 || statData.locked ? 'disabled' : ''}>-</button>
