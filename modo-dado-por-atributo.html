@@ -199,253 +199,290 @@
         </div>
     </div>
     <script>
-        // Música
-        const bgMusic = document.getElementById('bgMusic');
-        const musicToggleBtn = document.getElementById('musicToggleBtn');
-        let musicPlaying = false;
-        bgMusic.volume = 0.3;
-        function playMusic() {
-            bgMusic.play().then(() => {
-                musicPlaying = true;
-                musicToggleBtn.textContent = '🔊';
-            }).catch(() => {
-                musicPlaying = false;
-                musicToggleBtn.textContent = '🔈';
-            });
-        }
-        function pauseMusic() {
-            bgMusic.pause();
+    // Música (mantive seu código)
+    const bgMusic = document.getElementById('bgMusic');
+    const musicToggleBtn = document.getElementById('musicToggleBtn');
+    let musicPlaying = false;
+    bgMusic.volume = 0.3;
+    function playMusic() {
+        bgMusic.play().then(() => {
+            musicPlaying = true;
+            musicToggleBtn.textContent = '🔊';
+        }).catch(() => {
             musicPlaying = false;
             musicToggleBtn.textContent = '🔈';
-        }
-        musicToggleBtn.addEventListener('click', () => musicPlaying ? pauseMusic() : playMusic());
-        window.addEventListener('DOMContentLoaded', () => setTimeout(playMusic, 400));
-        document.body.addEventListener('click', () => !musicPlaying && playMusic(), { once: true });
-
-        // Estado do jogo
-        const stats = [
-            'Constituição', 'Sabedoria', 'Inteligência', 'Carisma',
-            'Força', 'Destreza', 'Ataque', 'Defesa',
-            'Velocidade', 'Mana', 'Poder Mágico', 'Resistência Mágica',
-            'Sorte', 'Arcanismo'
-        ];
-        let gameState = {
-            bonusDice: [], // array de dados extras
-            results: {},
-            finalized: false,
-            selectedBonusDice: [], // índices dos dados extras selecionados
-            currentStat: null,
-            currentCard: null
-        };
-        const statsList = document.getElementById('statsList');
-        const bonusDiceBox = document.getElementById('bonusDiceBox');
-        const selectionInfo = document.getElementById('selectionInfo');
-        const finalizeBtn = document.getElementById('finalizeBtn');
-
-        function initStats() {
-            statsList.innerHTML = '';
-            stats.forEach(stat => {
-                const card = document.createElement('div');
-                card.className = 'stat-card';
-                card.dataset.stat = stat;
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-secondary" style="font-family:'UnifrakturCook',cursive;">${stat}</span>
-                        <div>
-                            <button class="roll-btn fantasy-btn text-sm px-3 py-1 mr-2">🎲 Rolar</button>
-                            <button class="skip-btn fantasy-btn text-sm px-3 py-1 bg-gray-600">Pular</button>
-                        </div>
-                    </div>
-                    <div class="dice-container mt-2 flex justify-center items-end gap-2"></div>
-                    <div class="result mt-1 text-center text-primary font-bold hidden"></div>
-                    <div class="dice-results mt-1 text-center"></div>
-                `;
-                statsList.appendChild(card);
-
-                card.querySelector('.roll-btn').addEventListener('click', () => prepareRollStat(stat, card));
-                card.querySelector('.skip-btn').addEventListener('click', () => skipStat(stat, card));
-            });
-        }
-
-        function skipStat(stat, card) {
-            if (gameState.results[stat] !== undefined || gameState.finalized) return;
-            gameState.bonusDice.push({ used: false });
-            updateBonusDiceDisplay();
-            card.classList.add('skipped');
-            card.querySelector('.result').textContent = 'Pulado ✨';
-            card.querySelector('.result').classList.remove('hidden');
-            gameState.results[stat] = null;
-            checkFinalize();
-        }
-
-        function renderBonusDice() {
-            bonusDiceBox.innerHTML = '';
-            gameState.bonusDice.forEach((die, idx) => {
-                if (!die.used) {
-                    const dieEl = document.createElement('div');
-                    dieEl.className = 'bonus-die';
-                    dieEl.textContent = '10';
-                    dieEl.dataset.idx = idx;
-                    if (gameState.selectedBonusDice.includes(idx)) dieEl.classList.add('selected');
-                    dieEl.addEventListener('click', () => toggleBonusDieSelection(idx, dieEl));
-                    bonusDiceBox.appendChild(dieEl);
-                }
-            });
-        }
-
-        function updateBonusDiceDisplay() {
-            renderBonusDice();
-        }
-
-        function prepareRollStat(stat, card) {
-            if (gameState.results[stat] !== undefined || gameState.finalized) return;
-
-            gameState.currentStat = stat;
-            gameState.currentCard = card;
-            gameState.selectedBonusDice = [];
-
-            selectionInfo.textContent = 'Clique nos dados extras ao lado para selecionar!';
-            renderBonusDice();
-
-            // Botão rolar muda de função
-            const rollBtn = card.querySelector('.roll-btn');
-            rollBtn.textContent = `🎲 Rolar`;
-            rollBtn.onclick = () => confirmRoll(stat, card);
-        }
-
-        function toggleBonusDieSelection(idx, dieEl) {
-            if (gameState.selectedBonusDice.includes(idx)) {
-                gameState.selectedBonusDice = gameState.selectedBonusDice.filter(i => i !== idx);
-                dieEl.classList.remove('selected');
-            } else {
-                gameState.selectedBonusDice.push(idx);
-                dieEl.classList.add('selected');
-            }
-            selectionInfo.textContent = gameState.selectedBonusDice.length > 0 ?
-                `${gameState.selectedBonusDice.length} dado(s) selecionado(s)` :
-                'Clique nos dados extras ao lado para selecionar!';
-            if (gameState.currentCard) {
-                const rollBtn = gameState.currentCard.querySelector('.roll-btn');
-                rollBtn.textContent = `🎲 Rolar (${gameState.selectedBonusDice.length} extras)`;
-            }
-        }
-
-        function confirmRoll(stat, card) {
-            const extraIndices = [...gameState.selectedBonusDice];
-            extraIndices.forEach(idx => {
-                gameState.bonusDice[idx].used = true;
-            });
-            rollStat(stat, card, extraIndices);
-            gameState.selectedBonusDice = [];
-            selectionInfo.textContent = '';
-            updateBonusDiceDisplay();
-        }
-
-        // CORRIGIDA: Agora soma todos os dados rolados (principal + extras)
-        function rollStat(stat, card, extraIndices=[]) {
-            if (gameState.results[stat] !== undefined || gameState.finalized) return;
-
-            let diceContainer = card.querySelector('.dice-container');
-            diceContainer.innerHTML = '';
-            diceContainer.style.display = 'flex';
-            diceContainer.style.justifyContent = 'center';
-            diceContainer.style.alignItems = 'center';
-            diceContainer.style.gap = '1rem';
-
-            // Quantos dados serão rolados? 1 principal + extras selecionados
-            const totalRolls = 1 + extraIndices.length;
-            const rolls = [];
-            for (let i = 0; i < totalRolls; i++) {
-                const dieEl = document.createElement('div');
-                dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold rolling';
-                dieEl.textContent = '...';
-                const dieWrapper = document.createElement('div');
-                dieWrapper.className = 'flex flex-col items-center';
-                const label = document.createElement('div');
-                label.className = 'dice-result text-xs mb-1';
-                label.textContent = i === 0 ? 'Principal' : `Extra ${i}`;
-                dieWrapper.appendChild(label);
-                dieWrapper.appendChild(dieEl);
-                diceContainer.appendChild(dieWrapper);
-                rolls.push(dieEl);
-            }
-
-            card.querySelector('.roll-btn').disabled = true;
-            card.querySelector('.skip-btn').disabled = true;
-
-            setTimeout(() => {
-                const values = [];
-                const resultsContainer = card.querySelector('.dice-results');
-                resultsContainer.innerHTML = '';
-                resultsContainer.style.textAlign = 'center';
-                resultsContainer.style.marginTop = '0.5rem';
-
-                rolls.forEach((dieEl, idx) => {
-                    const val = Math.floor(Math.random() * 10) + 1;
-                    values.push(val);
-                    dieEl.textContent = val;
-                    dieEl.classList.remove('rolling');
-                    const resultText = document.createElement('div');
-                    resultText.className = 'dice-result';
-                    resultText.textContent = (idx === 0)
-                        ? `Dado principal: ${val}`
-                        : `Dado extra ${idx}: ${val}`;
-                    resultsContainer.appendChild(resultText);
-                });
-
-                // Soma todos os dados rolados!
-                const mainDie = values[0];
-                const extraDice = values.slice(1);
-                const finalValue = values.reduce((sum, val) => sum + val, 0);
-
-                const finalResult = document.createElement('div');
-                finalResult.className = 'dice-result max-value';
-                finalResult.textContent = `🎯 Valor final: ${mainDie} (principal) + ${extraDice.join(' + ')} (extras) = ${finalValue}`;
-                resultsContainer.appendChild(finalResult);
-
-                card.querySelector('.result').textContent = `+${finalValue}`;
-                card.querySelector('.result').classList.remove('hidden');
-                gameState.results[stat] = finalValue;
-                card.classList.add('rolled');
-                checkFinalize();
-                gameState.currentStat = null;
-                gameState.currentCard = null;
-            }, 500);
-        }
-
-        function checkFinalize() {
-            const allHandled = stats.every(s => gameState.results[s] !== undefined);
-            finalizeBtn.disabled = !allHandled || gameState.finalized;
-        }
-
-        function showSummary() {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4';
-            const active = stats
-                .filter(s => gameState.results[s] !== null)
-                .map(s => `<strong>${s}</strong>: +${gameState.results[s]}`)
-                .join('<br>');
-            const skipped = stats
-                .filter(s => gameState.results[s] === null)
-                .map(s => `<em>${s}</em>`)
-                .join(', ');
-            modal.innerHTML = `
-                <div class="bg-parchment p-8 rounded-2xl shadow-xl max-w-md w-full fantasy-frame" style="background:rgba(249,246,225,0.96)">
-                    <h3 class="text-2xl font-bold mb-4 text-center fantasy-title">✨ Personagem Criado! ✨</h3>
-                    ${active ? `<div class="mb-4"><strong>Atributos Rolados:</strong><br>${active}</div>` : ''}
-                    ${skipped ? `<div class="text-red-600"><strong>Pulados:</strong> ${skipped}</div>` : ''}
-                    <button class="fantasy-btn w-full mt-6 py-2" onclick="this.closest('.fixed').remove()">Fechar</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-        finalizeBtn.addEventListener('click', () => {
-            gameState.finalized = true;
-            showSummary();
         });
-        // Iniciar
-        initStats();
+    }
+    function pauseMusic() {
+        bgMusic.pause();
+        musicPlaying = false;
+        musicToggleBtn.textContent = '🔈';
+    }
+    musicToggleBtn.addEventListener('click', () => musicPlaying ? pauseMusic() : playMusic());
+    window.addEventListener('DOMContentLoaded', () => setTimeout(playMusic, 400));
+    document.body.addEventListener('click', () => !musicPlaying && playMusic(), { once: true });
+
+    // Estado do jogo - modificado: cada bonus die tem id único
+    const stats = [
+        'Constituição', 'Sabedoria', 'Inteligência', 'Carisma',
+        'Força', 'Destreza', 'Ataque', 'Defesa',
+        'Velocidade', 'Mana', 'Poder Mágico', 'Resistência Mágica',
+        'Sorte', 'Arcanismo'
+    ];
+    let gameState = {
+        bonusDice: [],            // [{id: 'd1', used: false}, ...]
+        results: {},              // { 'Força': 7, ... } (null = pulado)
+        finalized: false,
+        selectedBonusDice: [],    // array de ids selecionados (não índices)
+        currentStat: null,
+        currentCard: null,
+        nextBonusId: 1
+    };
+
+    const statsList = document.getElementById('statsList');
+    const bonusDiceBox = document.getElementById('bonusDiceBox');
+    const selectionInfo = document.getElementById('selectionInfo');
+    const finalizeBtn = document.getElementById('finalizeBtn');
+
+    function initStats() {
+        statsList.innerHTML = '';
+        stats.forEach(stat => {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.dataset.stat = stat;
+            card.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-secondary" style="font-family:'UnifrakturCook',cursive;">${stat}</span>
+                    <div>
+                        <button class="roll-btn fantasy-btn text-sm px-3 py-1 mr-2">🎲 Rolar</button>
+                        <button class="skip-btn fantasy-btn text-sm px-3 py-1 bg-gray-600">Pular</button>
+                    </div>
+                </div>
+                <div class="dice-container mt-2 flex justify-center items-end gap-2"></div>
+                <div class="result mt-1 text-center text-primary font-bold hidden"></div>
+                <div class="dice-results mt-1 text-center"></div>
+            `;
+            statsList.appendChild(card);
+
+            const rollBtn = card.querySelector('.roll-btn');
+            const skipBtn = card.querySelector('.skip-btn');
+            rollBtn.addEventListener('click', () => prepareRollStat(stat, card));
+            skipBtn.addEventListener('click', () => skipStat(stat, card));
+        });
+    }
+
+    // Quando pular, cria um dado extra (com id) e marca este stat como tratado (null)
+    function skipStat(stat, card) {
+        if (gameState.results[stat] !== undefined || gameState.finalized) return;
+        const id = `b${gameState.nextBonusId++}`;
+        gameState.bonusDice.push({ id, used: false });
         updateBonusDiceDisplay();
-    </script>
+        card.classList.add('skipped');
+        card.querySelector('.result').textContent = 'Pulado ✨';
+        card.querySelector('.result').classList.remove('hidden');
+        gameState.results[stat] = null; // pulado, mas "definido"
+        checkFinalize();
+    }
+
+    // Renderiza apenas dados não usados; usa id para seleção
+    function renderBonusDice() {
+        bonusDiceBox.innerHTML = '';
+        gameState.bonusDice.forEach(die => {
+            if (!die.used) {
+                const dieEl = document.createElement('div');
+                dieEl.className = 'bonus-die';
+                dieEl.textContent = '10';
+                dieEl.dataset.id = die.id;
+                if (gameState.selectedBonusDice.includes(die.id)) dieEl.classList.add('selected');
+                dieEl.addEventListener('click', () => toggleBonusDieSelection(die.id, dieEl));
+                bonusDiceBox.appendChild(dieEl);
+            }
+        });
+    }
+
+    function updateBonusDiceDisplay() {
+        renderBonusDice();
+    }
+
+    // Preparar rolagem: mostra instruções e permite selecionar por id
+    function prepareRollStat(stat, card) {
+        if (gameState.results[stat] !== undefined || gameState.finalized) return;
+
+        gameState.currentStat = stat;
+        gameState.currentCard = card;
+        gameState.selectedBonusDice = [];
+
+        selectionInfo.textContent = 'Clique nos dados extras ao lado para selecionar!';
+        renderBonusDice();
+
+        // altera o texto do botão para refletir quantos extras foram escolhidos
+        const rollBtn = card.querySelector('.roll-btn');
+        rollBtn.textContent = `🎲 Rolar (0 extras)`;
+        // mantemos o listener original — confirmar será tratado no clique que chama confirmRoll
+        // para simplificar, substituímos o click temporariamente
+        rollBtn.onclick = () => confirmRoll(stat, card);
+    }
+
+    // Alterna seleção baseado em id (não índice)
+    function toggleBonusDieSelection(id, dieEl) {
+        if (gameState.selectedBonusDice.includes(id)) {
+            gameState.selectedBonusDice = gameState.selectedBonusDice.filter(i => i !== id);
+            dieEl.classList.remove('selected');
+        } else {
+            gameState.selectedBonusDice.push(id);
+            dieEl.classList.add('selected');
+        }
+        selectionInfo.textContent = gameState.selectedBonusDice.length > 0 ?
+            `${gameState.selectedBonusDice.length} dado(s) selecionado(s)` :
+            'Clique nos dados extras ao lado para selecionar!';
+        if (gameState.currentCard) {
+            const rollBtn = gameState.currentCard.querySelector('.roll-btn');
+            rollBtn.textContent = `🎲 Rolar (${gameState.selectedBonusDice.length} extras)`;
+        }
+    }
+
+    // Confirma: marca como usados (por id) e inicia rolagem
+    function confirmRoll(stat, card) {
+        const selectedIds = [...gameState.selectedBonusDice];
+        selectedIds.forEach(id => {
+            const dieObj = gameState.bonusDice.find(d => d.id === id);
+            if (dieObj) dieObj.used = true; // marca usado por id (imune a reindex)
+        });
+
+        // calcula quantos extras serão rolados (apenas o comprimento dos ids selecionados)
+        rollStat(stat, card, selectedIds.length);
+
+        // limpa seleção e UI
+        gameState.selectedBonusDice = [];
+        selectionInfo.textContent = '';
+        updateBonusDiceDisplay();
+
+        // remove o onclick temporário do botão e reponha texto (evita efeitos colaterais)
+        const rollBtn = card.querySelector('.roll-btn');
+        rollBtn.onclick = null;
+    }
+
+    // Rola 1 principal + extrasCount extras (soma corretamente)
+    function rollStat(stat, card, extrasCount = 0) {
+        if (gameState.results[stat] !== undefined || gameState.finalized) return;
+
+        let diceContainer = card.querySelector('.dice-container');
+        diceContainer.innerHTML = '';
+        diceContainer.style.display = 'flex';
+        diceContainer.style.justifyContent = 'center';
+        diceContainer.style.alignItems = 'center';
+        diceContainer.style.gap = '1rem';
+
+        const totalRolls = 1 + extrasCount;
+        const rolls = [];
+        for (let i = 0; i < totalRolls; i++) {
+            const dieEl = document.createElement('div');
+            dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold rolling';
+            dieEl.textContent = '...';
+            const dieWrapper = document.createElement('div');
+            dieWrapper.className = 'flex flex-col items-center';
+            const label = document.createElement('div');
+            label.className = 'dice-result text-xs mb-1';
+            label.textContent = i === 0 ? 'Principal' : `Extra ${i}`;
+            dieWrapper.appendChild(label);
+            dieWrapper.appendChild(dieEl);
+            diceContainer.appendChild(dieWrapper);
+            rolls.push(dieEl);
+        }
+
+        // desabilita botões do cartão atual enquanto rola
+        const rollBtn = card.querySelector('.roll-btn');
+        const skipBtn = card.querySelector('.skip-btn');
+        rollBtn.disabled = true;
+        skipBtn.disabled = true;
+
+        setTimeout(() => {
+            const values = [];
+            const resultsContainer = card.querySelector('.dice-results');
+            resultsContainer.innerHTML = '';
+            resultsContainer.style.textAlign = 'center';
+            resultsContainer.style.marginTop = '0.5rem';
+
+            rolls.forEach((dieEl, idx) => {
+                const val = Math.floor(Math.random() * 10) + 1;
+                values.push(val);
+                dieEl.textContent = val;
+                dieEl.classList.remove('rolling');
+                const resultText = document.createElement('div');
+                resultText.className = 'dice-result';
+                resultText.textContent = (idx === 0)
+                    ? `Dado principal: ${val}`
+                    : `Dado extra ${idx}: ${val}`;
+                resultsContainer.appendChild(resultText);
+            });
+
+            // Soma correta (números)
+            const finalValue = values.reduce((sum, v) => sum + v, 0);
+
+            // FORMATAÇÃO amigável para mostrar "principal + extras"
+            const mainDie = values[0];
+            const extraDice = values.slice(1);
+            const extrasText = extraDice.length > 0 ? `${extraDice.join(' + ')} (extras)` : '(sem extras)';
+            const finalResult = document.createElement('div');
+            finalResult.className = 'dice-result max-value';
+            finalResult.textContent = `🎯 Valor final: ${mainDie} (principal) ${extraDice.length > 0 ? '+ ' + extraDice.join(' + ') : ''} = ${finalValue}`;
+            resultsContainer.appendChild(finalResult);
+
+            // atualiza estado, mostra no cartão e marca como 'rolled'
+            card.querySelector('.result').textContent = `+${finalValue}`;
+            card.querySelector('.result').classList.remove('hidden');
+            gameState.results[stat] = finalValue;
+            card.classList.add('rolled');
+
+            // atualiza UI de bônus (dados usados já foram marcados como used)
+            updateBonusDiceDisplay();
+
+            // reabilita (ou opcionalmente deixe disabled para segurança)
+            // note: após rolar um stat, não queremos que se role novamente -> mantemos disabled
+            // rollBtn.disabled = false; // deixe comentado para impedir re-roll
+            // skipBtn.disabled = false;
+
+            checkFinalize();
+            gameState.currentStat = null;
+            gameState.currentCard = null;
+        }, 500);
+    }
+
+    function checkFinalize() {
+        const allHandled = stats.every(s => gameState.results[s] !== undefined);
+        finalizeBtn.disabled = !allHandled || gameState.finalized;
+    }
+
+    function showSummary() {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4';
+        const active = stats
+            .filter(s => gameState.results[s] !== null)
+            .map(s => `<strong>${s}</strong>: +${gameState.results[s]}`)
+            .join('<br>');
+        const skipped = stats
+            .filter(s => gameState.results[s] === null)
+            .map(s => `<em>${s}</em>`)
+            .join(', ');
+        modal.innerHTML = `
+            <div class="bg-parchment p-8 rounded-2xl shadow-xl max-w-md w-full fantasy-frame" style="background:rgba(249,246,225,0.96)">
+                <h3 class="text-2xl font-bold mb-4 text-center fantasy-title">✨ Personagem Criado! ✨</h3>
+                ${active ? `<div class="mb-4"><strong>Atributos Rolados:</strong><br>${active}</div>` : ''}
+                ${skipped ? `<div class="text-red-600"><strong>Pulados:</strong> ${skipped}</div>` : ''}
+                <button class="fantasy-btn w-full mt-6 py-2" onclick="this.closest('.fixed').remove()">Fechar</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    finalizeBtn.addEventListener('click', () => {
+        gameState.finalized = true;
+        showSummary();
+    });
+
+    // iniciar
+    initStats();
+    updateBonusDiceDisplay();
+</script>
 </body>
 </html>
