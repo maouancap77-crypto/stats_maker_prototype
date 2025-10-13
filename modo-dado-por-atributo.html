@@ -382,8 +382,7 @@
                 die.classList.add('fade-out');
                 setTimeout(() => {
                     die.remove();
-                    // CORREÇÃO: Atualiza o contador visual após remover
-                    bonusDiceCount.textContent = gameState.bonusDice;
+        
                 }, 300);
             });
         }
@@ -448,6 +447,10 @@
             // Cria contêiner para dados (principal + extras)
             let diceContainer = card.querySelector('.dice-container');
             diceContainer.innerHTML = '';
+            diceContainer.style.display = 'flex';
+            diceContainer.style.justifyContent = 'center';
+            diceContainer.style.alignItems = 'center';
+            diceContainer.style.gap = '1rem';
 
             // Número total de dados a rolar
             const totalRolls = 1 + use;
@@ -490,6 +493,8 @@
                 const values = [];
                 const resultsContainer = card.querySelector('.dice-results');
                 resultsContainer.innerHTML = '';
+                resultsContainer.style.textAlign = 'center';
+                resultsContainer.style.marginTop = '0.5rem';
                 
                 // Rola os valores
                 rolls.forEach((dieEl, idx) => {
@@ -534,8 +539,9 @@
                 gameState.selectedBonusDice = 0;
                 selectionInfo.textContent = '';
                 
-                // CORREÇÃO: Re-renderiza os dados extras para remover os usados
-                renderBonusDice();
+                // CORREÇÃO: Atualiza o contador visual e renderiza somente o restante dos dados extras
+                updateBonusDiceDisplay();
+
             }, 500);
         }
 
