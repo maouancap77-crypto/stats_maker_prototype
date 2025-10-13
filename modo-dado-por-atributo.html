@@ -189,6 +189,19 @@
             from { opacity: 1; transform: scale(1); }
             to { opacity: 0; transform: scale(0); }
         }
+
+        .dice-result {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 0.8rem;
+            color: #8B5D26;
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+
+        .max-value {
+            color: #3C2C09;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -301,10 +314,9 @@
                             <button class="skip-btn fantasy-btn text-sm px-3 py-1 bg-gray-600">Pular</button>
                         </div>
                     </div>
-                    <div class="dice-container mt-2 flex justify-center">
-                        <div class="dice hidden">?</div>
-                    </div>
+                    <div class="dice-container mt-2 flex justify-center items-end gap-2"></div>
                     <div class="result mt-1 text-center text-primary font-bold hidden"></div>
+                    <div class="dice-results mt-1 text-center"></div>
                 `;
                 statsList.appendChild(card);
 
@@ -343,6 +355,10 @@
         // Confirma a rolagem com os dados extras selecionados
         function confirmRoll(stat, card) {
             if (gameState.selectedBonusDice > gameState.bonusDice) return;
+            
+            // Remove os dados selecionados do estado do jogo
+            gameState.bonusDice -= gameState.selectedBonusDice;
+            bonusDiceCount.textContent = gameState.bonusDice;
             
             // Remove os dados selecionados visualmente com animação
             removeSelectedBonusDice();
@@ -428,19 +444,8 @@
         function rollStat(stat, card, use) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
 
-            // Atualiza estado - remove os dados extras usados
-            gameState.bonusDice -= use;
-            bonusDiceCount.textContent = gameState.bonusDice;
-
             // Cria contêiner para dados (principal + extras)
             let diceContainer = card.querySelector('.dice-container');
-            if (!diceContainer) {
-                diceContainer = document.createElement('div');
-                diceContainer.className = 'dice-container flex justify-center gap-2 mt-2';
-                card.querySelector('.dice').replaceWith(diceContainer);
-            }
-
-            // Limpa dados anteriores (caso já tenha rolado)
             diceContainer.innerHTML = '';
 
             // Número total de dados a rolar
@@ -453,7 +458,25 @@
                 dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold';
                 dieEl.textContent = '...';
                 dieEl.classList.add('rolling');
-                diceContainer.appendChild(dieEl);
+                
+                // Adiciona label para identificar qual dado é qual
+                const dieWrapper = document.createElement('div');
+                dieWrapper.className = 'flex flex-col items-center';
+                
+                if (i === 0) {
+                    const label = document.createElement('div');
+                    label.className = 'dice-result text-xs mb-1';
+                    label.textContent = 'Principal';
+                    dieWrapper.appendChild(label);
+                } else {
+                    const label = document.createElement('div');
+                    label.className = 'dice-result text-xs mb-1';
+                    label.textContent = `Extra ${i}`;
+                    dieWrapper.appendChild(label);
+                }
+                
+                dieWrapper.appendChild(dieEl);
+                diceContainer.appendChild(dieWrapper);
                 rolls.push(dieEl);
             }
 
@@ -464,14 +487,34 @@
             // Rolagem após animação
             setTimeout(() => {
                 const values = [];
+                const resultsContainer = card.querySelector('.dice-results');
+                resultsContainer.innerHTML = '';
+                
                 rolls.forEach((dieEl, idx) => {
                     const val = Math.floor(Math.random() * 10) + 1;
                     values.push(val);
                     dieEl.textContent = val;
                     dieEl.classList.remove('rolling');
+                    
+                    // Adiciona resultado individual
+                    const resultText = document.createElement('div');
+                    resultText.className = 'dice-result';
+                    if (idx === 0) {
+                        resultText.textContent = `Dado principal: ${val}`;
+                    } else {
+                        resultText.textContent = `Dado extra ${idx}: ${val}`;
+                    }
+                    resultsContainer.appendChild(resultText);
                 });
 
                 const finalValue = Math.max(...values);
+                
+                // Destaca o valor máximo
+                const maxResult = document.createElement('div');
+                maxResult.className = 'dice-result max-value';
+                maxResult.textContent = `🎯 Valor máximo: ${finalValue}`;
+                resultsContainer.appendChild(maxResult);
+                
                 card.querySelector('.result').textContent = `+${finalValue}`;
                 card.querySelector('.result').classList.remove('hidden');
                 gameState.results[stat] = finalValue;
