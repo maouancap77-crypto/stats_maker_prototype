@@ -150,10 +150,16 @@
             border-color: #EACB7A;
         }
 
-        .bonus-die.used {
+        /*.bonus-die.used {
             opacity: 0.4;
             transform: scale(0.8);
             cursor: not-allowed;
+        } */
+        .bonus-die.used {
+        opacity: 0.4;
+        transform: scale(0.8);
+        cursor: not-allowed;
+        filter: grayscale(0.5);
         }
 
         @keyframes appear {
@@ -379,6 +385,7 @@
             const selectedDice = document.querySelectorAll('.bonus-die.selected');
             
             selectedDice.forEach(die => {
+                die.classList.add('used');
                 die.classList.add('fade-out');
                 setTimeout(() => {
                     die.remove();
