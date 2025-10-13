@@ -341,64 +341,76 @@
             }
         }
 
-        function rollStat(stat, card) {
+        function rollStat(stat, card, extraIndices) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
-
-            const use = gameState.bonusDice > 0 
-                ? parseInt(prompt(`Você tem ${gameState.bonusDice} dado(s) extra(s).\nQuantos deseja usar aqui? (0-${gameState.bonusDice})`, "0")) || 0
-                : 0;
-
-            if (use < 0 || use > gameState.bonusDice) return;
-
-            gameState.bonusDice -= use;
-            renderBonusDice();
-
-            const diceContainer = card.querySelector('.dice-container');
+            let diceContainer = card.querySelector('.dice-container');
             diceContainer.innerHTML = '';
-
-            const totalRolls = 1 + use;
-            const diceEls = [];
+            diceContainer.style.display = 'flex';
+            diceContainer.style.justifyContent = 'center';
+            diceContainer.style.alignItems = 'center';
+            diceContainer.style.gap = '1rem';
+            const totalRolls = 1 + extraIndices.length;
+            const rolls = [];
             for (let i = 0; i < totalRolls; i++) {
                 const dieEl = document.createElement('div');
-                dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold';
+                dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold rolling';
                 dieEl.textContent = '...';
-                dieEl.classList.add('rolling');
-                diceContainer.appendChild(dieEl);
-                diceEls.push(dieEl);
+                const dieWrapper = document.createElement('div');
+                dieWrapper.className = 'flex flex-col items-center';
+                const label = document.createElement('div');
+                label.className = 'dice-result text-xs mb-1';
+                label.textContent = i === 0 ? 'Principal' : `Extra ${i}`;
+                dieWrapper.appendChild(label);
+                dieWrapper.appendChild(dieEl);
+                diceContainer.appendChild(dieWrapper);
+                rolls.push(dieEl);
             }
-
             card.querySelector('.roll-btn').disabled = true;
             card.querySelector('.skip-btn').disabled = true;
-
-            // Som de rolagem
-            rollSound.currentTime = 0;
-            rollSound.play().catch(() => {});
-
             setTimeout(() => {
                 const values = [];
-                diceEls.forEach(dieEl => {
+                const resultsContainer = card.querySelector('.dice-results');
+                resultsContainer.innerHTML = '';
+                resultsContainer.style.textAlign = 'center';
+                resultsContainer.style.marginTop = '0.5rem';
+                rolls.forEach((dieEl, idx) => {
                     const val = Math.floor(Math.random() * 10) + 1;
                     values.push(val);
                     dieEl.textContent = val;
                     dieEl.classList.remove('rolling');
+                    const resultText = document.createElement('div');
+                    resultText.className = 'dice-result';
+                    if (idx === 0) {
+                        resultText.textContent = `Dado principal: ${val}`;
+                    } else {
+                        resultText.textContent = `Dado extra ${idx}: ${val}`;
+                    }
+                    resultsContainer.appendChild(resultText);
                 });
-
-                const finalValue = Math.max(...values);
+                // Soma todos os valores
+                const mainDie = values[0];
+                const extraDice = values.slice(1);
+                const finalValue = values.reduce((sum, val) => sum + val, 0);
+                const finalResult = document.createElement('div');
+                finalResult.className = 'dice-result max-value';
+                finalResult.textContent = `🎯 Valor final: ${mainDie} (principal) + ${extraDice.join(' + ')} (extras) = ${finalValue}`;
+                resultsContainer.appendChild(finalResult);
                 card.querySelector('.result').textContent = `+${finalValue}`;
                 card.querySelector('.result').classList.remove('hidden');
                 gameState.results[stat] = finalValue;
                 card.classList.add('rolled');
-
-                // Partículas ao usar dados extras
-                if (use > 0) {
-                    const rect = card.getBoundingClientRect();
-                    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, '#8B5D26', 10);
-                }
-
                 checkFinalize();
+                gameState.currentStat = null;
+                gameState.currentCard = null;
+                gameState.selectedBonusDice = [];
+                selectionInfo.textContent = '';
+                updateBonusDiceDisplay();
             }, 500);
         }
 
+
+
+        
         function checkFinalize() {
             const allHandled = stats.every(s => gameState.results[s] !== undefined);
             finalizeBtn.disabled = !allHandled || gameState.finalized;
