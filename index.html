@@ -3,27 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Criação de Personagem - RPG</title>
+    <title>Criação de Personagem - RPG Fantasia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#5D5CDE',
-                        'bg-light': '#FFFFFF',
-                        'bg-dark': '#181818'
+                        primary: '#8B5D26',
+                        secondary: '#3C2C09',
+                        accent: '#EACB7A',
+                        'bg-fantasy': '#201a12',
+                        'parchment': '#f9f6e1'
+                    },
+                    fontFamily: {
+                        fantasy: ['"UnifrakturCook"', 'cursive'],
+                        gothic: ['"MedievalSharp"', 'cursive']
+                    },
+                    boxShadow: {
+                        fantasy: '0 4px 32px 0 rgba(139,93,38,0.44)'
                     }
                 }
             }
         }
     </script>
+    <!-- Google Fonts para o clima de fantasia -->
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
+        body {
+            /* Novo background com tema fantasia */
+            background-image: url('https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=1600&q=80');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: 'MedievalSharp', 'UnifrakturCook', cursive, serif;
+        }
+        .overlay {
+            background: linear-gradient(135deg, rgba(44,32,7,0.92) 0%, rgba(30,19,6,0.77) 100%);
+            min-height: 100vh;
+            padding-bottom: 4rem;
+        }
+        /* Moldura fantasia */
+        .fantasy-frame {
+            border: 10px solid #EACB7A;
+            border-image: url('https://i.imgur.com/A9R2uMh.png') 40 stretch;
+            box-shadow: 0 8px 32px 0 rgba(139,93,38,0.44), 0 0 0 20px rgba(234,203,122,0.08);
+            background: url('https://i.imgur.com/2uU7rP8.png') repeat;
+        }
+        .fantasy-title {
+            font-family: 'UnifrakturCook', cursive;
+            font-size: 3rem;
+            color: #EACB7A;
+            text-shadow: 2px 2px 8px #3C2C09, 0 0 18px #EACB7A;
+        }
+        .fantasy-subtitle {
+            font-family: 'MedievalSharp', cursive;
+            color: #EACB7A;
+            font-size: 1.25rem;
+            text-shadow: 0 0 8px #3C2C09;
+        }
+        .fantasy-btn {
+            font-family: 'MedievalSharp', cursive;
+            border: 3px solid #EACB7A;
+            background: linear-gradient(90deg,#8B5D26 0%, #EACB7A 100%);
+            color: #3C2C09;
+            box-shadow: 0 2px 8px #8B5D26;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .fantasy-btn:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 4px #8B5D26;
+        }
+        /* Dados estilo medieval */
         .dice {
+            font-family: 'UnifrakturCook', cursive;
             transition: transform 0.3s ease;
+            background: radial-gradient(circle at 60% 40%, #EACB7A 60%, #8B5D26 100%);
+            border: 4px solid #3C2C09;
+            box-shadow: 0 2px 16px #8B5D26;
         }
         .dice:hover {
-            transform: scale(1.05);
+            transform: scale(1.08) rotate(-2deg);
         }
         .rolling {
             animation: roll 0.5s ease-in-out;
@@ -37,131 +99,160 @@
         }
         .stat-bar {
             transition: all 0.3s ease;
+            background: linear-gradient(90deg,#f9f6e1 60%, #EACB7A 100%);
+            box-shadow: 0 2px 12px #8B5D26;
+            border: 3px solid #EACB7A;
         }
         .stat-locked {
-            opacity: 0.5;
+            opacity: 0.55;
             filter: grayscale(100%);
+            background: #cbb97d;
+            border-color: #b77c3a;
         }
-        /* NOVO: Background de fantasia */
-        body {
-            background-image: url('image.png'); 
-            background-size: cover; /* Ajusta a imagem para cobrir toda a tela */
-            background-position: center; /* Centraliza a imagem */
-            background-repeat: no-repeat; /* Não repete a imagem */
-            background-attachment: fixed; /* Fixa o background ao rolar a página */
+        .fantasy-divider {
+            border-top: 3px dashed #EACB7A;
+            margin: 2rem 0;
         }
-
-        /* NOVO: Overlay para melhorar legibilidade do texto sobre o background */
-        .overlay {
-            background-color: rgba(0, 0, 0, 0.5); /* Camada semi-transparente escura */
-            min-height: 100vh;
+        /* Botão da música */
+        .music-btn {
+            position: fixed;
+            top: 1.2rem;
+            right: 1.2rem;
+            z-index: 70;
+            background: #8B5D26;
+            color: #EACB7A;
+            border: 3px solid #EACB7A;
+            font-family: 'MedievalSharp', cursive;
+            box-shadow: 0 2px 8px #3C2C09;
+            border-radius: 50px;
+            padding: 0.7em 1.4em;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+        .music-btn:active {
+            background: #EACB7A;
+            color: #8B5D26;
         }
     </style>
 </head>
-<body class="bg-bg-light dark:bg-bg-dark text-gray-900 dark:text-white min-h-screen">
-    <!-- NOVO: Elemento de áudio para música de fantasia -->
-    <audio id="bgMusic" loop autoplay volume="0.3">
+<body>
+    <!-- Botão música fantasia -->
+    <button id="musicToggleBtn" class="music-btn" aria-label="Tocar/Pausar Música">🔊</button>
+    <!-- Áudio de fundo -->
+    <audio id="bgMusic" loop preload="auto">
         <source src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg" type="audio/ogg">
         Seu navegador não suporta o elemento de áudio. <a href="https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg">Baixe o arquivo aqui</a>.
     </audio>
     
-    <div class="container mx-auto px-4 py-8 max-w-6xl overlay"> <!-- Adicionado overlay aqui -->
+    <div class="container mx-auto px-2 py-8 max-w-5xl overlay fantasy-frame">
         <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-2 text-primary">Criação de Personagem</h1>
-            <p class="text-gray-600 dark:text-gray-400">Role os dados e distribua seus pontos de atributo</p>
+        <div class="text-center mb-10">
+            <h1 class="fantasy-title mb-2">Criação de Personagem</h1>
+            <p class="fantasy-subtitle">Role os dados místicos e distribua seus atributos para embarcar em sua aventura!</p>
+            <div class="fantasy-divider"></div>
         </div>
-
-        <div class="grid lg:grid-cols-2 gap-8">
+        <div class="grid lg:grid-cols-2 gap-10">
             <!-- Seção de Dados -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-center">Sistema de Dados</h2>
-                
-                <!-- Informações do Sistema -->
-                <div class="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                    <p class="text-sm text-gray-700 dark:text-gray-300 mb-2">
+            <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
+                <h2 class="text-2xl font-bold mb-4 text-center text-primary" style="font-family:'UnifrakturCook',cursive;">Sistema dos Dados</h2>
+                <div class="mb-6 p-4 rounded-xl" style="background:rgba(234,203,122,0.14); border:2px solid #EACB7A;">
+                    <p class="text-base text-secondary mb-2" style="font-family:'MedievalSharp',cursive;">
                         <strong>Regras:</strong>
                     </p>
-                    <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                        <li>• Comece com 2 dados de 16 faces</li>
-                        <li>• Role primeiro, depois pode adicionar dados</li>
-                        <li>• 1º dado extra: 20+ pontos na rolagem</li>
-                        <li>• 2º dado extra: 40+ pontos na rolagem</li>
-                        <li>• Máximo: 4 dados (4-64 pontos)</li>
+                    <ul class="text-base text-secondary space-y-1" style="font-family:'MedievalSharp',cursive;">
+                        <li>• Comece com <span class="text-primary">2 dados místicos de 16 faces</span></li>
+                        <li>• Role primeiro, depois poderá invocar mais dados</li>
+                        <li>• 3º dado: <span class="text-accent">20+ pontos</span> na rolagem</li>
+                        <li>• 4º dado: <span class="text-accent">40+ pontos</span> na rolagem</li>
+                        <li>• Máximo: <span class="text-primary">4 dados</span> (4-64 pontos)</li>
                     </ul>
                 </div>
-
-                <!-- Dados Visuais -->
                 <div class="text-center mb-6">
                     <div class="flex justify-center space-x-4 mb-4" id="diceContainer">
                         <!-- Dados serão gerados aqui -->
                     </div>
-                    <div class="text-lg font-semibold mb-4">
+                    <div class="text-lg font-semibold mb-4 text-secondary" style="font-family:'MedievalSharp',cursive;">
                         Dados Ativos: <span id="activeDice">2</span>/4
                     </div>
                 </div>
-
-                <!-- Controles -->
                 <div class="space-y-4">
-                    <button id="addDiceBtn" class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors" disabled>
+                    <button id="addDiceBtn" class="fantasy-btn w-full py-3 px-6 rounded-xl text-lg" disabled>
                         Adicionar Dado (+1)
                     </button>
-                    <button id="rollDiceBtn" class="w-full bg-primary hover:bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                    <button id="rollDiceBtn" class="fantasy-btn w-full py-3 px-6 rounded-xl text-lg">
                         Rolar Dados
                     </button>
                 </div>
-
-                <!-- Resultado -->
                 <div class="mt-6 text-center">
-                    <div class="text-2xl font-bold mb-2">
+                    <div class="text-2xl font-bold mb-2 text-primary" style="font-family:'UnifrakturCook',cursive;">
                         Pontos Disponíveis: <span id="totalPoints">0</span>
                     </div>
-                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                    <div class="text-base text-secondary" style="font-family:'MedievalSharp',cursive;">
                         Rolagens: <span id="rollCount">0</span>/∞
                     </div>
                 </div>
             </div>
-
             <!-- Seção de Atributos -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-                <h2 class="text-2xl font-semibold mb-4 text-center">Distribuição de Atributos</h2>
-                
+            <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
+                <h2 class="text-2xl font-bold mb-4 text-center text-primary" style="font-family:'UnifrakturCook',cursive;">Distribuição dos Atributos</h2>
                 <div class="mb-4 text-center">
-                    <div class="text-lg font-semibold">
+                    <div class="text-lg font-semibold text-secondary" style="font-family:'MedievalSharp',cursive;">
                         Pontos Restantes: <span id="remainingPoints">0</span>
                     </div>
                 </div>
-
-                <!-- Lista de Atributos -->
                 <div class="space-y-3" id="statsContainer">
                     <!-- Atributos serão gerados aqui -->
                 </div>
-
-                <!-- Botão Finalizar -->
-                <button id="finalizeBuildBtn" class="w-full mt-6 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors" disabled>
+                <button id="finalizeBuildBtn" class="fantasy-btn w-full mt-6 py-3 px-6 rounded-xl text-lg" disabled>
                     Finalizar Build
                 </button>
-
-                <!-- Aviso -->
-                <div class="mt-4 p-3 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded">
-                    <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                <div class="mt-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 rounded-xl" style="background:rgba(234,203,122,0.24);">
+                    <p class="text-base text-yellow-800" style="font-family:'MedievalSharp',cursive;">
                         ⚠️ Atributos sem pontos adicionais serão bloqueados!
                     </p>
                 </div>
             </div>
         </div>
     </div>
-
     <script>
-        // NOVO: Controle da música (opcional: botão para pausar/tocar)
+        // Música fantasia: controle de autoplay e botão
         const bgMusic = document.getElementById('bgMusic');
-        
-        // Toca a música automaticamente (com fallback para navegadores que bloqueiam autoplay)
-        bgMusic.play().catch(e => {
-            console.log('Autoplay bloqueado. A música tocará ao interagir com a página.');
-        });
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        let musicPlaying = false;
+        // Garantir volume inicial
+        bgMusic.volume = 0.3;
 
-        // Configuração do modo escuro
+        function playMusic() {
+            bgMusic.play().then(() => {
+                musicPlaying = true;
+                musicToggleBtn.textContent = '🔊';
+            }).catch(() => {
+                musicPlaying = false;
+                musicToggleBtn.textContent = '🔈';
+            });
+        }
+        function pauseMusic() {
+            bgMusic.pause();
+            musicPlaying = false;
+            musicToggleBtn.textContent = '🔈';
+        }
+        // Botão música
+        musicToggleBtn.addEventListener('click', function() {
+            if (musicPlaying) pauseMusic();
+            else playMusic();
+        });
+        // Autoplay: requer interação do usuário em navegadores modernos
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                playMusic();
+            }, 400);
+        });
+        // Autoplay fallback ao clicar em qualquer lugar
+        document.body.addEventListener('click', function() {
+            if (!musicPlaying) playMusic();
+        }, { once: true });
+
+        // Dark mode for fantasy
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
         }
@@ -213,7 +304,7 @@
         // Função para criar dados visuais
         function createDiceVisual() {
             const dice = document.createElement('div');
-            dice.className = 'dice w-16 h-16 bg-gray-200 dark:bg-gray-600 border-2 border-gray-400 dark:border-gray-500 rounded-lg flex items-center justify-center text-xl font-bold cursor-pointer';
+            dice.className = 'dice w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-extrabold text-secondary cursor-pointer';
             dice.textContent = '?';
             return dice;
         }
@@ -225,8 +316,6 @@
                 diceContainer.appendChild(createDiceVisual());
             }
             activeDiceSpan.textContent = gameState.activeDice;
-            
-            // Atualizar botão de adicionar dado baseado na pontuação atual
             updateAddDiceButton();
         }
 
@@ -234,15 +323,11 @@
         function updateAddDiceButton() {
             const currentPoints = gameState.totalPoints;
             const diceCount = gameState.activeDice;
-
-            // Verificar se o número máximo de dados foi atingido
             if (diceCount >= 4) {
                 addDiceBtn.textContent = 'Máximo de dados atingido';
                 addDiceBtn.disabled = true;
                 return;
             }
-
-            // Verificar se o jogador pode adicionar um dado com base nos pontos
             if (diceCount === 2) {
                 if (currentPoints >= 20) {
                     addDiceBtn.textContent = 'Adicionar 3º Dado (20+ pontos)';
@@ -266,13 +351,10 @@
         function rollDice() {
             const diceElements = diceContainer.querySelectorAll('.dice');
             let total = 0;
-
-            // Animação de rolagem
             diceElements.forEach(dice => {
                 dice.classList.add('rolling');
                 dice.textContent = '...';
             });
-
             setTimeout(() => {
                 diceElements.forEach(dice => {
                     const result = Math.floor(Math.random() * 16) + 1;
@@ -280,15 +362,11 @@
                     dice.classList.remove('rolling');
                     total += result;
                 });
-
-                // Atualizar o estado com o total calculado
                 gameState.totalPoints = total;
-                gameState.remainingPoints = total; // Garantir que os pontos restantes sejam iguais ao total inicial
+                gameState.remainingPoints = total;
                 gameState.rollCount++;
-
-                // Atualizar a exibição e o botão
                 updateDisplay();
-                updateAddDiceButton(); // Garantir que o botão seja atualizado imediatamente
+                updateAddDiceButton();
             }, 500);
         }
 
@@ -296,16 +374,9 @@
         function addDice() {
             const currentPoints = gameState.totalPoints;
             const diceCount = gameState.activeDice;
-            
-            // Verificar se pode adicionar dado baseado na pontuação
             let canAdd = false;
-            
-            if (diceCount === 2 && currentPoints >= 20) {
-                canAdd = true;
-            } else if (diceCount === 3 && currentPoints >= 40) {
-                canAdd = true;
-            }
-            
+            if (diceCount === 2 && currentPoints >= 20) canAdd = true;
+            else if (diceCount === 3 && currentPoints >= 40) canAdd = true;
             if (canAdd && diceCount < 4 && gameState.rollCount > 0) {
                 gameState.activeDice++;
                 updateDiceDisplay();
@@ -315,49 +386,41 @@
         // Função para criar um atributo
         function createStatElement(statName, statData) {
             const statDiv = document.createElement('div');
-            statDiv.className = `stat-bar p-4 border rounded-lg ${statData.locked ? 'stat-locked border-red-300 dark:border-red-700' : 'border-gray-300 dark:border-gray-600'}`;
-            
+            statDiv.className = `stat-bar p-4 rounded-lg ${statData.locked ? 'stat-locked border-red-300' : 'border-accent'}`;
             statDiv.innerHTML = `
                 <div class="flex justify-between items-center mb-2">
-                    <span class="font-semibold">${statName}</span>
-                    <span class="text-lg font-bold">${statData.base + statData.added}</span>
+                    <span class="font-semibold text-secondary" style="font-family:'UnifrakturCook',cursive; font-size:1.25rem;">${statName}</span>
+                    <span class="text-xl font-bold text-primary" style="font-family:'MedievalSharp',cursive;">${statData.base + statData.added}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <button class="stat-decrease w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full text-lg font-bold ${statData.added <= 0 || statData.locked ? 'opacity-50 cursor-not-allowed' : ''}" 
-                            data-stat="${statName}" ${statData.added <= 0 || statData.locked ? 'disabled' : ''}>-</button>
+                    <button class="stat-decrease w-8 h-8 fantasy-btn rounded-full text-lg font-bold ${statData.added <= 0 || statData.locked ? 'opacity-50 cursor-not-allowed' : ''}" data-stat="${statName}" ${statData.added <= 0 || statData.locked ? 'disabled' : ''}>-</button>
                     <div class="flex-1 mx-4">
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                        <div class="w-full bg-accent rounded-full h-3">
                             <div class="bg-primary h-3 rounded-full transition-all duration-300" style="width: ${(statData.added / 10) * 100}%"></div>
                         </div>
-                        <div class="text-center text-sm mt-1 text-gray-600 dark:text-gray-400">
+                        <div class="text-center text-base mt-1 text-secondary" style="font-family:'MedievalSharp',cursive;">
                             +${statData.added}/10
                         </div>
                     </div>
-                    <button class="stat-increase w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full text-lg font-bold ${statData.added >= 10 || gameState.remainingPoints <= 0 || statData.locked ? 'opacity-50 cursor-not-allowed' : ''}" 
-                            data-stat="${statName}" ${statData.added >= 10 || gameState.remainingPoints <= 0 || statData.locked ? 'disabled' : ''}>+</button>
+                    <button class="stat-increase w-8 h-8 fantasy-btn rounded-full text-lg font-bold ${statData.added >= 10 || gameState.remainingPoints <= 0 || statData.locked ? 'opacity-50 cursor-not-allowed' : ''}" data-stat="${statName}" ${statData.added >= 10 || gameState.remainingPoints <= 0 || statData.locked ? 'disabled' : ''}>+</button>
                 </div>
             `;
-            
             return statDiv;
         }
 
         // Função para atualizar a exibição dos atributos
         function updateStatsDisplay() {
             statsContainer.innerHTML = '';
-            
             Object.entries(gameState.stats).forEach(([statName, statData]) => {
                 const statElement = createStatElement(statName, statData);
                 statsContainer.appendChild(statElement);
             });
-
-            // Adicionar event listeners
             document.querySelectorAll('.stat-increase').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const statName = e.target.dataset.stat;
                     increaseStat(statName);
                 });
             });
-
             document.querySelectorAll('.stat-decrease').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const statName = e.target.dataset.stat;
@@ -389,60 +452,48 @@
         // Função para finalizar build
         function finalizeBuild() {
             if (gameState.buildFinalized) return;
-
-            // Bloquear atributos sem pontos adicionais
             Object.entries(gameState.stats).forEach(([statName, statData]) => {
-                if (statData.added === 0) {
-                    statData.locked = true;
-                }
+                if (statData.added === 0) statData.locked = true;
             });
-
             gameState.buildFinalized = true;
             finalizeBuildBtn.textContent = 'Build Finalizada!';
             finalizeBuildBtn.disabled = true;
-            
             updateDisplay();
-            
-            // Mostrar resumo
             showBuildSummary();
         }
 
-        // Função para mostrar resumo da build
+        // Modal de resumo com tema fantasia
         function showBuildSummary() {
             const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-            
+            modal.className = 'fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4';
             const activeStats = Object.entries(gameState.stats)
                 .filter(([_, stat]) => !stat.locked)
-                .map(([name, stat]) => `${name}: ${stat.base + stat.added}`)
+                .map(([name, stat]) => `<span style="font-family:'UnifrakturCook',cursive;">${name}</span>: <span style="font-family:'MedievalSharp',cursive;">${stat.base + stat.added}</span>`)
                 .join('<br>');
-            
             const lockedStats = Object.entries(gameState.stats)
                 .filter(([_, stat]) => stat.locked)
-                .map(([name, _]) => name)
+                .map(([name, _]) => `<span style="font-family:'UnifrakturCook',cursive;">${name}</span>`)
                 .join(', ');
-
             modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
-                    <h3 class="text-xl font-bold mb-4 text-center">Build Finalizada!</h3>
+                <div class="bg-parchment p-8 rounded-2xl shadow-xl max-w-md w-full fantasy-frame" style="background:rgba(249,246,225,0.96)">
+                    <h3 class="text-2xl font-bold mb-4 text-center fantasy-title">Build Finalizada!</h3>
                     <div class="space-y-4">
                         <div>
-                            <h4 class="font-semibold text-green-600 dark:text-green-400">Atributos Ativos:</h4>
-                            <div class="text-sm mt-2">${activeStats}</div>
+                            <h4 class="font-semibold text-green-700" style="font-family:'MedievalSharp',cursive;">Atributos Ativos:</h4>
+                            <div class="text-base mt-2">${activeStats}</div>
                         </div>
                         ${lockedStats ? `
                         <div>
-                            <h4 class="font-semibold text-red-600 dark:text-red-400">Atributos Bloqueados:</h4>
-                            <div class="text-sm mt-2">${lockedStats}</div>
+                            <h4 class="font-semibold text-red-700" style="font-family:'MedievalSharp',cursive;">Atributos Bloqueados:</h4>
+                            <div class="text-base mt-2">${lockedStats}</div>
                         </div>
                         ` : ''}
                     </div>
-                    <button class="w-full mt-6 bg-primary hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg" onclick="this.closest('.fixed').remove()">
+                    <button class="fantasy-btn w-full mt-6 py-2 px-4 rounded-xl" onclick="this.closest('.fixed').remove()">
                         Fechar
                     </button>
                 </div>
             `;
-            
             document.body.appendChild(modal);
         }
 
@@ -451,10 +502,7 @@
             totalPointsSpan.textContent = gameState.totalPoints;
             rollCountSpan.textContent = gameState.rollCount;
             remainingPointsSpan.textContent = gameState.remainingPoints;
-            
             updateStatsDisplay();
-            
-            // Habilitar botão de finalizar se houver pontos distribuídos
             const hasDistributedPoints = Object.values(gameState.stats).some(stat => stat.added > 0);
             finalizeBuildBtn.disabled = !hasDistributedPoints || gameState.buildFinalized;
         }
