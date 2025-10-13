@@ -358,9 +358,8 @@
             
             // Remove os dados selecionados do estado do jogo
             gameState.bonusDice -= gameState.selectedBonusDice;
-            bonusDiceCount.textContent = gameState.bonusDice;
             
-            // Remove os dados selecionados visualmente com animação
+            // CORREÇÃO: Remove os dados selecionados visualmente ANTES da rolagem
             removeSelectedBonusDice();
             
             // Desabilita seleção
@@ -383,6 +382,8 @@
                 die.classList.add('fade-out');
                 setTimeout(() => {
                     die.remove();
+                    // CORREÇÃO: Atualiza o contador visual após remover
+                    bonusDiceCount.textContent = gameState.bonusDice;
                 }, 300);
             });
         }
@@ -440,7 +441,7 @@
             }
         }
 
-        // Função principal de rolagem
+        // Função principal de rolagem CORRIGIDA
         function rollStat(stat, card, use) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
 
@@ -490,6 +491,7 @@
                 const resultsContainer = card.querySelector('.dice-results');
                 resultsContainer.innerHTML = '';
                 
+                // Rola os valores
                 rolls.forEach((dieEl, idx) => {
                     const val = Math.floor(Math.random() * 10) + 1;
                     values.push(val);
@@ -507,13 +509,18 @@
                     resultsContainer.appendChild(resultText);
                 });
 
-                const finalValue = Math.max(...values);
+                // CORREÇÃO: Soma o dado principal com os extras em vez de pegar apenas o máximo
+                const mainDie = values[0]; // Primeiro valor é sempre o dado principal
+                const extraDice = values.slice(1); // Restante são dados extras
                 
-                // Destaca o valor máximo
-                const maxResult = document.createElement('div');
-                maxResult.className = 'dice-result max-value';
-                maxResult.textContent = `🎯 Valor máximo: ${finalValue}`;
-                resultsContainer.appendChild(maxResult);
+                // Soma todos os valores (principal + extras)
+                const finalValue = values.reduce((sum, val) => sum + val, 0);
+                
+                // Destaca o valor final calculado
+                const finalResult = document.createElement('div');
+                finalResult.className = 'dice-result max-value';
+                finalResult.textContent = `🎯 Valor final: ${mainDie} (principal) + ${extraDice.join(' + ')} (extras) = ${finalValue}`;
+                resultsContainer.appendChild(finalResult);
                 
                 card.querySelector('.result').textContent = `+${finalValue}`;
                 card.querySelector('.result').classList.remove('hidden');
@@ -527,20 +534,26 @@
                 gameState.selectedBonusDice = 0;
                 selectionInfo.textContent = '';
                 
-                // Re-renderiza os dados extras para garantir consistência
+                // CORREÇÃO: Re-renderiza os dados extras para remover os usados
                 renderBonusDice();
             }, 500);
         }
 
+        // CORREÇÃO: Adicionar esta função para melhor controle dos dados extras
+        function updateBonusDiceDisplay() {
+            bonusDiceCount.textContent = gameState.bonusDice;
+            renderBonusDice();
+        }
+
+        // Modificar a função skipStat para usar a nova função de atualização
         function skipStat(stat, card) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
             gameState.bonusDice++;
-            bonusDiceCount.textContent = gameState.bonusDice;
+            updateBonusDiceDisplay(); // Usa a função centralizada
             card.classList.add('skipped');
             card.querySelector('.result').textContent = 'Pulado ✨';
             card.querySelector('.result').classList.remove('hidden');
             gameState.results[stat] = null;
-            renderBonusDice();
             checkFinalize();
         }
 
