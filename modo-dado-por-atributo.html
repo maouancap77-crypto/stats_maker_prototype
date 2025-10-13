@@ -124,6 +124,41 @@
             background: #EACB7A;
             color: #8B5D26;
         }
+        
+        /* Estilos para dados extras */
+        .bonus-die {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'UnifrakturCook', cursive;
+            background: radial-gradient(circle at 60% 40%, #EACB7A 60%, #8B5D26 100%);
+            border: 3px solid #3C2C09;
+            box-shadow: 0 2px 12px #8B5D26;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            color: #3C2C09;
+            animation: appear 0.4s ease-out;
+            cursor: pointer;
+        }
+
+        @keyframes appear {
+            from { transform: scale(0) rotate(0deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Reutilizar animação de rolagem */
+        .rolling {
+            animation: roll 0.5s ease-in-out;
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -133,7 +168,7 @@
         Seu navegador não suporta o elemento de áudio.
     </audio>
 
-    <div class="container mx-auto px-2 py-8 max-w-4xl overlay fantasy-frame">
+    <div class="container mx-auto px-2 py-8 max-w-6xl overlay fantasy-frame">
         <div class="text-center mb-8">
             <h1 class="fantasy-title mb-2">✨ Um Dado por Atributo ✨</h1>
             <p class="fantasy-subtitle">Role um d10 para cada atributo — ou pule e ganhe um dado extra!</p>
@@ -143,18 +178,32 @@
             <div class="fantasy-divider" style="border-top: 3px dashed #EACB7A; margin: 1.5rem auto; width: 80%;"></div>
         </div>
 
-        <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
-            <div class="mb-4 text-center">
-                <div class="text-lg font-semibold text-secondary" style="font-family:'MedievalSharp',cursive;">
-                    Dados Extras Disponíveis: <span id="bonusDiceCount" class="text-primary font-bold">0</span>
+        <div class="grid lg:grid-cols-3 gap-6">
+          <!-- Coluna 1: Atributos -->
+          <div class="lg:col-span-2">
+            <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
+                <div class="mb-4 text-center">
+                    <div class="text-lg font-semibold text-secondary" style="font-family:'MedievalSharp',cursive;">
+                        Dados Extras Disponíveis: <span id="bonusDiceCount" class="text-primary font-bold">0</span>
+                    </div>
                 </div>
+
+                <div id="statsList" class="space-y-3 mb-6"></div>
+
+                <button id="finalizeBtn" class="fantasy-btn w-full py-3 px-6 rounded-xl text-lg" disabled>
+                    Finalizar Personagem
+                </button>
             </div>
+          </div>
 
-            <div id="statsList" class="space-y-3 mb-6"></div>
-
-            <button id="finalizeBtn" class="fantasy-btn w-full py-3 px-6 rounded-xl text-lg" disabled>
-                Finalizar Personagem
-            </button>
+          <!-- Coluna 2: Box de Dados Extras -->
+          <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
+            <h3 class="text-xl font-bold mb-4 text-center text-primary" style="font-family:'UnifrakturCook',cursive;">🎲 Dados Extras</h3>
+            <div id="bonusDiceBox" class="flex flex-wrap justify-center gap-3 min-h-[80px]"></div>
+            <p class="text-center text-secondary mt-4" style="font-family:'MedievalSharp',cursive; font-size:0.9rem;">
+                Pule atributos para ganhar dados!
+            </p>
+          </div>
         </div>
     </div>
 
@@ -200,6 +249,7 @@
         const statsList = document.getElementById('statsList');
         const bonusDiceCount = document.getElementById('bonusDiceCount');
         const finalizeBtn = document.getElementById('finalizeBtn');
+        const bonusDiceBox = document.getElementById('bonusDiceBox');
 
         // Inicializa os atributos
         function initStats() {
@@ -216,7 +266,9 @@
                             <button class="skip-btn fantasy-btn text-sm px-3 py-1 bg-gray-600">Pular</button>
                         </div>
                     </div>
-                    <div class="dice mt-2 hidden">?</div>
+                    <div class="dice-container mt-2 flex justify-center">
+                        <div class="dice hidden">?</div>
+                    </div>
                     <div class="result mt-1 text-center text-primary font-bold hidden"></div>
                 `;
                 statsList.appendChild(card);
@@ -229,36 +281,60 @@
         function rollStat(stat, card) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
 
-            const diceEl = card.querySelector('.dice');
-            const resultEl = card.querySelector('.result');
+            const use = gameState.bonusDice > 0 
+                ? parseInt(prompt(`Você tem ${gameState.bonusDice} dado(s) extra(s).\nQuantos deseja usar aqui? (0-${gameState.bonusDice})`, "0")) || 0
+                : 0;
 
-            diceEl.textContent = '...';
-            diceEl.classList.remove('hidden');
+            if (use < 0 || use > gameState.bonusDice) return;
+
+            // Atualiza estado
+            gameState.bonusDice -= use;
+            bonusDiceCount.textContent = gameState.bonusDice;
+            renderBonusDice();
+
+            // Cria contêiner para dados (principal + extras)
+            let diceContainer = card.querySelector('.dice-container');
+            if (!diceContainer) {
+                diceContainer = document.createElement('div');
+                diceContainer.className = 'dice-container flex justify-center gap-2 mt-2';
+                card.querySelector('.dice').replaceWith(diceContainer);
+            }
+
+            // Limpa dados anteriores (caso já tenha rolado)
+            diceContainer.innerHTML = '';
+
+            // Número total de dados a rolar
+            const totalRolls = 1 + use;
+            const rolls = [];
+
+            // Cria e exibe todos os dados (animados)
+            for (let i = 0; i < totalRolls; i++) {
+                const dieEl = document.createElement('div');
+                dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold';
+                dieEl.textContent = '...';
+                dieEl.classList.add('rolling');
+                diceContainer.appendChild(dieEl);
+                rolls.push(dieEl);
+            }
+
+            // Desativa botões
             card.querySelector('.roll-btn').disabled = true;
             card.querySelector('.skip-btn').disabled = true;
 
+            // Rolagem após animação
             setTimeout(() => {
-                let value = Math.floor(Math.random() * 10) + 1;
+                const values = [];
+                rolls.forEach((dieEl, idx) => {
+                    const val = Math.floor(Math.random() * 10) + 1;
+                    values.push(val);
+                    dieEl.textContent = val;
+                    dieEl.classList.remove('rolling');
+                });
 
-                // Se houver dados extras, permite rolar mais de uma vez
-                if (gameState.bonusDice > 0) {
-                    const extraRolls = prompt(`Você tem ${gameState.bonusDice} dado(s) extra(s).\nQuantos deseja usar aqui? (0-${gameState.bonusDice})`, "1");
-                    const use = parseInt(extraRolls) || 0;
-                    if (use > 0 && use <= gameState.bonusDice) {
-                        const rolls = [value];
-                        for (let i = 1; i < use; i++) {
-                            rolls.push(Math.floor(Math.random() * 10) + 1);
-                        }
-                        value = Math.max(...rolls);
-                        gameState.bonusDice -= use;
-                        bonusDiceCount.textContent = gameState.bonusDice;
-                    }
-                }
-
-                diceEl.textContent = value;
-                resultEl.textContent = `+${value}`;
-                resultEl.classList.remove('hidden');
-                gameState.results[stat] = value;
+                const finalValue = Math.max(...values);
+                card.querySelector('.result').textContent = `+${finalValue}`;
+                card.querySelector('.result').classList.remove('hidden');
+                gameState.results[stat] = finalValue;
                 card.classList.add('rolled');
                 checkFinalize();
             }, 500);
@@ -272,7 +348,19 @@
             card.querySelector('.result').textContent = 'Pulado ✨';
             card.querySelector('.result').classList.remove('hidden');
             gameState.results[stat] = null;
+            renderBonusDice();
             checkFinalize();
+        }
+
+        // Nova função: renderiza os dados extras no box lateral
+        function renderBonusDice() {
+            bonusDiceBox.innerHTML = '';
+            for (let i = 0; i < gameState.bonusDice; i++) {
+                const die = document.createElement('div');
+                die.className = 'bonus-die';
+                die.textContent = '10'; // Representa d10
+                bonusDiceBox.appendChild(die);
+            }
         }
 
         function checkFinalize() {
@@ -311,6 +399,7 @@
         // Iniciar
         initStats();
         bonusDiceCount.textContent = gameState.bonusDice;
+        renderBonusDice();
     </script>
 </body>
 </html>
