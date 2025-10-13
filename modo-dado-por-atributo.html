@@ -124,8 +124,6 @@
             background: #EACB7A;
             color: #8B5D26;
         }
-        
-        /* Estilos para dados extras */
         .bonus-die {
             width: 50px;
             height: 50px;
@@ -143,25 +141,21 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-
         .bonus-die.selected {
             transform: scale(1.1);
             box-shadow: 0 0 12px 4px #EACB7A, 0 2px 12px #8B5D26;
             border-color: #EACB7A;
         }
-
         .bonus-die.used {
             opacity: 0.4;
             transform: scale(0.8);
             cursor: not-allowed;
             filter: grayscale(0.5);
         }
-
         @keyframes appear {
             from { transform: scale(0) rotate(0deg); opacity: 0; }
             to { transform: scale(1) rotate(0deg); opacity: 1; }
         }
-
         .rolling {
             animation: roll 0.5s ease-in-out;
         }
@@ -172,7 +166,6 @@
             75% { transform: rotate(270deg); }
             100% { transform: rotate(360deg); }
         }
-
         .selection-info {
             font-family: 'MedievalSharp', cursive;
             font-size: 0.9rem;
@@ -180,16 +173,13 @@
             text-align: center;
             margin-top: 0.5rem;
         }
-
         .fade-out {
             animation: fadeOut 0.3s ease-out forwards;
         }
-
         @keyframes fadeOut {
             from { opacity: 1; transform: scale(1); }
             to { opacity: 0; transform: scale(0); }
         }
-
         .dice-result {
             font-family: 'MedievalSharp', cursive;
             font-size: 0.8rem;
@@ -197,7 +187,6 @@
             text-align: center;
             margin-top: 0.25rem;
         }
-
         .max-value {
             color: #3C2C09;
             font-weight: bold;
@@ -210,7 +199,6 @@
         <source src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg" type="audio/ogg">
         Seu navegador não suporta o elemento de áudio.
     </audio>
-
     <div class="container mx-auto px-2 py-8 max-w-6xl overlay fantasy-frame">
         <div class="text-center mb-8">
             <h1 class="fantasy-title mb-2">✨ Um Dado por Atributo ✨</h1>
@@ -220,7 +208,6 @@
             </div>
             <div class="fantasy-divider" style="border-top: 3px dashed #EACB7A; margin: 1.5rem auto; width: 80%;"></div>
         </div>
-
         <div class="grid lg:grid-cols-3 gap-6">
           <!-- Coluna 1: Atributos -->
           <div class="lg:col-span-2">
@@ -230,15 +217,12 @@
                         Dados Extras Disponíveis: <span id="bonusDiceCount" class="text-primary font-bold">0</span>
                     </div>
                 </div>
-
                 <div id="statsList" class="space-y-3 mb-6"></div>
-
                 <button id="finalizeBtn" class="fantasy-btn w-full py-3 px-6 rounded-xl text-lg" disabled>
                     Finalizar Personagem
                 </button>
             </div>
           </div>
-
           <!-- Coluna 2: Box de Dados Extras -->
           <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
             <h3 class="text-xl font-bold mb-4 text-center text-primary" style="font-family:'UnifrakturCook',cursive;">🎲 Dados Extras</h3>
@@ -250,14 +234,12 @@
           </div>
         </div>
     </div>
-
     <script>
-        // Música (mesmo código)
+        // Música (igual ao original)
         const bgMusic = document.getElementById('bgMusic');
         const musicToggleBtn = document.getElementById('musicToggleBtn');
         let musicPlaying = false;
         bgMusic.volume = 0.3;
-
         function playMusic() {
             bgMusic.play().then(() => {
                 musicPlaying = true;
@@ -283,23 +265,20 @@
             'Velocidade', 'Mana', 'Poder Mágico', 'Resistência Mágica',
             'Sorte', 'Arcanismo'
         ];
-
         let gameState = {
-            bonusDice: [], // Array para cada dado extra
+            bonusDice: [], // array de dados extras
             results: {},
             finalized: false,
-            selectedBonusDice: [], // Array de índices dos dados extras selecionados
+            selectedBonusDice: [], // índices dos dados extras selecionados
             currentStat: null,
             currentCard: null
         };
-
         const statsList = document.getElementById('statsList');
         const bonusDiceCount = document.getElementById('bonusDiceCount');
         const finalizeBtn = document.getElementById('finalizeBtn');
         const bonusDiceBox = document.getElementById('bonusDiceBox');
         const selectionInfo = document.getElementById('selectionInfo');
 
-        // Inicializa os atributos
         function initStats() {
             statsList.innerHTML = '';
             stats.forEach(stat => {
@@ -319,13 +298,10 @@
                     <div class="dice-results mt-1 text-center"></div>
                 `;
                 statsList.appendChild(card);
-
                 card.querySelector('.roll-btn').addEventListener('click', () => prepareRollStat(stat, card));
                 card.querySelector('.skip-btn').addEventListener('click', () => skipStat(stat, card));
             });
         }
-
-        // Adicionar dado extra ao pular
         function skipStat(stat, card) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
             gameState.bonusDice.push({ used: false });
@@ -336,8 +312,6 @@
             gameState.results[stat] = null;
             checkFinalize();
         }
-
-        // Renderiza dados extras
         function renderBonusDice() {
             bonusDiceBox.innerHTML = '';
             gameState.bonusDice.forEach((die, idx) => {
@@ -351,34 +325,26 @@
                 }
             });
         }
-
         function updateBonusDiceDisplay() {
-            // Visualiza apenas os dados extras não usados
             bonusDiceCount.textContent = gameState.bonusDice.filter(d => !d.used).length;
             renderBonusDice();
         }
-
         function prepareRollStat(stat, card) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
-
             const availableDice = gameState.bonusDice.filter(d => !d.used);
             if (availableDice.length === 0) {
                 rollStat(stat, card, []);
                 return;
             }
-
             gameState.currentStat = stat;
             gameState.currentCard = card;
             gameState.selectedBonusDice = [];
-
             updateSelectionInfo();
             enableBonusDiceSelection();
-
             const rollBtn = card.querySelector('.roll-btn');
             rollBtn.textContent = `🎲 Rolar (0 extras)`;
             rollBtn.onclick = () => confirmRoll(stat, card);
         }
-
         function enableBonusDiceSelection() {
             const bonusDice = document.querySelectorAll('.bonus-die:not(.used)');
             bonusDice.forEach(die => {
@@ -386,7 +352,6 @@
                 die.style.cursor = 'pointer';
             });
         }
-
         function disableBonusDiceSelection() {
             const bonusDice = document.querySelectorAll('.bonus-die');
             bonusDice.forEach(die => {
@@ -394,12 +359,10 @@
                 die.style.cursor = 'default';
             });
         }
-
         function toggleBonusDieSelection(event) {
             const die = event.currentTarget;
             const idx = parseInt(die.dataset.idx);
             if (gameState.selectedBonusDice.includes(idx)) {
-                // Remove
                 gameState.selectedBonusDice = gameState.selectedBonusDice.filter(i => i !== idx);
                 die.classList.remove('selected');
             } else {
@@ -412,7 +375,6 @@
                 rollBtn.textContent = `🎲 Rolar (${gameState.selectedBonusDice.length} extras)`;
             }
         }
-
         function updateSelectionInfo() {
             if (gameState.selectedBonusDice.length > 0) {
                 selectionInfo.textContent = `${gameState.selectedBonusDice.length} dado(s) selecionado(s)`;
@@ -420,40 +382,27 @@
                 selectionInfo.textContent = 'Clique nos dados para selecioná-los';
             }
         }
-
-        // Confirma a rolagem com os dados extras selecionados
         function confirmRoll(stat, card) {
             if (gameState.selectedBonusDice.length > gameState.bonusDice.filter(d => !d.used).length) return;
-
-            // Marcar os dados extras selecionados como usados
             gameState.selectedBonusDice.forEach(idx => {
                 gameState.bonusDice[idx].used = true;
             });
-
             disableBonusDiceSelection();
-
             const rollBtn = card.querySelector('.roll-btn');
             rollBtn.textContent = '🎲 Rolar';
             rollBtn.onclick = () => prepareRollStat(stat, card);
-
-            // Passa os índices dos dados extras selecionados
             rollStat(stat, card, [...gameState.selectedBonusDice]);
         }
-
         function rollStat(stat, card, extraIndices) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
-
             let diceContainer = card.querySelector('.dice-container');
             diceContainer.innerHTML = '';
             diceContainer.style.display = 'flex';
             diceContainer.style.justifyContent = 'center';
             diceContainer.style.alignItems = 'center';
             diceContainer.style.gap = '1rem';
-
-            // Dado principal + dados extras
             const totalRolls = 1 + extraIndices.length;
             const rolls = [];
-
             for (let i = 0; i < totalRolls; i++) {
                 const dieEl = document.createElement('div');
                 dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold rolling';
@@ -468,23 +417,19 @@
                 diceContainer.appendChild(dieWrapper);
                 rolls.push(dieEl);
             }
-
             card.querySelector('.roll-btn').disabled = true;
             card.querySelector('.skip-btn').disabled = true;
-
             setTimeout(() => {
                 const values = [];
                 const resultsContainer = card.querySelector('.dice-results');
                 resultsContainer.innerHTML = '';
                 resultsContainer.style.textAlign = 'center';
                 resultsContainer.style.marginTop = '0.5rem';
-
                 rolls.forEach((dieEl, idx) => {
                     const val = Math.floor(Math.random() * 10) + 1;
                     values.push(val);
                     dieEl.textContent = val;
                     dieEl.classList.remove('rolling');
-
                     const resultText = document.createElement('div');
                     resultText.className = 'dice-result';
                     if (idx === 0) {
@@ -494,37 +439,29 @@
                     }
                     resultsContainer.appendChild(resultText);
                 });
-
-                // Soma todos os valores
                 const mainDie = values[0];
                 const extraDice = values.slice(1);
                 const finalValue = values.reduce((sum, val) => sum + val, 0);
-
                 const finalResult = document.createElement('div');
                 finalResult.className = 'dice-result max-value';
                 finalResult.textContent = `🎯 Valor final: ${mainDie} (principal) + ${extraDice.join(' + ')} (extras) = ${finalValue}`;
                 resultsContainer.appendChild(finalResult);
-
                 card.querySelector('.result').textContent = `+${finalValue}`;
                 card.querySelector('.result').classList.remove('hidden');
                 gameState.results[stat] = finalValue;
                 card.classList.add('rolled');
                 checkFinalize();
-
                 gameState.currentStat = null;
                 gameState.currentCard = null;
                 gameState.selectedBonusDice = [];
                 selectionInfo.textContent = '';
-
                 updateBonusDiceDisplay();
             }, 500);
         }
-
         function checkFinalize() {
             const allHandled = stats.every(s => gameState.results[s] !== undefined);
             finalizeBtn.disabled = !allHandled || gameState.finalized;
         }
-
         function showSummary() {
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4';
@@ -536,7 +473,6 @@
                 .filter(s => gameState.results[s] === null)
                 .map(s => `<em>${s}</em>`)
                 .join(', ');
-
             modal.innerHTML = `
                 <div class="bg-parchment p-8 rounded-2xl shadow-xl max-w-md w-full fantasy-frame" style="background:rgba(249,246,225,0.96)">
                     <h3 class="text-2xl font-bold mb-4 text-center fantasy-title">✨ Personagem Criado! ✨</h3>
@@ -547,12 +483,10 @@
             `;
             document.body.appendChild(modal);
         }
-
         finalizeBtn.addEventListener('click', () => {
             gameState.finalized = true;
             showSummary();
         });
-
         // Iniciar
         initStats();
         updateBonusDiceDisplay();
