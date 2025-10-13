@@ -42,10 +42,30 @@
             opacity: 0.5;
             filter: grayscale(100%);
         }
+        /* NOVO: Background de fantasia */
+        body {
+            background-image: url('image.png'); /* Substitua pelo caminho da sua imagem */
+            background-size: cover; /* Ajusta a imagem para cobrir toda a tela */
+            background-position: center; /* Centraliza a imagem */
+            background-repeat: no-repeat; /* Não repete a imagem */
+            background-attachment: fixed; /* Fixa o background ao rolar a página */
+        }
+
+        /* NOVO: Overlay para melhorar legibilidade do texto sobre o background */
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.5); /* Camada semi-transparente escura */
+            min-height: 100vh;
+        }
     </style>
 </head>
 <body class="bg-bg-light dark:bg-bg-dark text-gray-900 dark:text-white min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- NOVO: Elemento de áudio para música de fantasia -->
+    <audio id="bgMusic" loop autoplay volume="0.3">
+        <source src="fantasy-music.mp3" type="audio/mpeg">
+        Seu navegador não suporta o elemento de áudio. <a href="fantasy-music.mp3">Baixe o arquivo aqui</a>.
+    </audio>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl overlay"> <!-- Adicionado overlay aqui -->
         <!-- Header -->
         <div class="text-center mb-8">
             <h1 class="text-4xl font-bold mb-2 text-primary">Criação de Personagem</h1>
@@ -133,6 +153,14 @@
     </div>
 
     <script>
+        // NOVO: Controle da música (opcional: botão para pausar/tocar)
+        const bgMusic = document.getElementById('bgMusic');
+        
+        // Toca a música automaticamente (com fallback para navegadores que bloqueiam autoplay)
+        bgMusic.play().catch(e => {
+            console.log('Autoplay bloqueado. A música tocará ao interagir com a página.');
+        });
+
         // Configuração do modo escuro
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             document.documentElement.classList.add('dark');
