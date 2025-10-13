@@ -87,6 +87,16 @@
             font-size: 1.5rem;
             margin: 0 auto;
         }
+        .rolling {
+            animation: roll 0.5s ease-in-out;
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
         .stat-card {
             background: rgba(249,246,225,0.92);
             border: 2px solid #EACB7A;
@@ -100,10 +110,41 @@
             filter: grayscale(1);
             background: rgba(200,180,120,0.3);
         }
-        .bonus-dice {
-            display: inline-flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+        .bonus-die {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'UnifrakturCook', cursive;
+            background: radial-gradient(circle at 60% 40%, #EACB7A 60%, #8B5D26 100%);
+            border: 3px solid #3C2C09;
+            box-shadow: 0 2px 12px #8B5D26;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            color: #3C2C09;
+            animation: appear 0.4s ease-out;
+        }
+        @keyframes appear {
+            from { transform: scale(0) rotate(0deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
         }
         .music-btn {
             position: fixed;
@@ -124,92 +165,19 @@
             background: #EACB7A;
             color: #8B5D26;
         }
-        
-        /* Estilos para dados extras */
-        .bonus-die {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'UnifrakturCook', cursive;
-            background: radial-gradient(circle at 60% 40%, #EACB7A 60%, #8B5D26 100%);
-            border: 3px solid #3C2C09;
-            box-shadow: 0 2px 12px #8B5D26;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            color: #3C2C09;
-            animation: appear 0.4s ease-out;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .bonus-die.selected {
-            transform: scale(1.1);
-            box-shadow: 0 0 12px 4px #EACB7A, 0 2px 12px #8B5D26;
-            border-color: #EACB7A;
-        }
-
-        .bonus-die.used {
-            opacity: 0.4;
-            transform: scale(0.8);
-            cursor: not-allowed;
-        }
-
-        @keyframes appear {
-            from { transform: scale(0) rotate(0deg); opacity: 0; }
-            to { transform: scale(1) rotate(0deg); opacity: 1; }
-        }
-
-        /* Reutilizar animação de rolagem */
-        .rolling {
-            animation: roll 0.5s ease-in-out;
-        }
-        @keyframes roll {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(90deg); }
-            50% { transform: rotate(180deg); }
-            75% { transform: rotate(270deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .selection-info {
-            font-family: 'MedievalSharp', cursive;
-            font-size: 0.9rem;
-            color: #8B5D26;
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-
-        .fade-out {
-            animation: fadeOut 0.3s ease-out forwards;
-        }
-
-        @keyframes fadeOut {
-            from { opacity: 1; transform: scale(1); }
-            to { opacity: 0; transform: scale(0); }
-        }
-
-        .dice-result {
-            font-family: 'MedievalSharp', cursive;
-            font-size: 0.8rem;
-            color: #8B5D26;
-            text-align: center;
-            margin-top: 0.25rem;
-        }
-
-        .max-value {
-            color: #3C2C09;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
     <button id="musicToggleBtn" class="music-btn" aria-label="Tocar/Pausar Música">🔊</button>
     <audio id="bgMusic" loop preload="auto">
         <source src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg" type="audio/ogg">
-        Seu navegador não suporta o elemento de áudio.
     </audio>
+    <!-- Áudio de rolagem (curto, suave) -->
+    <audio id="rollSound" preload="auto">
+        <source src="data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV" type="audio/mpeg">
+    </audio>
+
+    <div class="particles" id="particles"></div>
 
     <div class="container mx-auto px-2 py-8 max-w-6xl overlay fantasy-frame">
         <div class="text-center mb-8">
@@ -222,39 +190,32 @@
         </div>
 
         <div class="grid lg:grid-cols-3 gap-6">
-          <!-- Coluna 1: Atributos -->
-          <div class="lg:col-span-2">
-            <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
-                <div class="mb-4 text-center">
-                    <div class="text-lg font-semibold text-secondary" style="font-family:'MedievalSharp',cursive;">
-                        Dados Extras Disponíveis: <span id="bonusDiceCount" class="text-primary font-bold">0</span>
-                    </div>
+            <!-- Atributos -->
+            <div class="lg:col-span-2">
+                <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
+                    <div id="statsList" class="space-y-3 mb-6"></div>
+                    <button id="finalizeBtn" class="fantasy-btn w-full py-3 px-6 rounded-xl text-lg" disabled>
+                        Finalizar Personagem
+                    </button>
                 </div>
-
-                <div id="statsList" class="space-y-3 mb-6"></div>
-
-                <button id="finalizeBtn" class="fantasy-btn w-full py-3 px-6 rounded-xl text-lg" disabled>
-                    Finalizar Personagem
-                </button>
             </div>
-          </div>
 
-          <!-- Coluna 2: Box de Dados Extras -->
-          <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
-            <h3 class="text-xl font-bold mb-4 text-center text-primary" style="font-family:'UnifrakturCook',cursive;">🎲 Dados Extras</h3>
-            <div id="bonusDiceBox" class="flex flex-wrap justify-center gap-3 min-h-[80px]"></div>
-            <div id="selectionInfo" class="selection-info"></div>
-            <p class="text-center text-secondary mt-4" style="font-family:'MedievalSharp',cursive; font-size:0.9rem;">
-                Pule atributos para ganhar dados! Clique nos dados para selecioná-los.
-            </p>
-          </div>
+            <!-- Box de Dados Extras -->
+            <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
+                <h3 class="text-xl font-bold mb-4 text-center text-primary" style="font-family:'UnifrakturCook',cursive;">🎲 Dados Extras</h3>
+                <div id="bonusDiceBox" class="flex flex-wrap justify-center gap-3 min-h-[80px]"></div>
+                <p class="text-center text-secondary mt-4" style="font-family:'MedievalSharp',cursive; font-size:0.9rem;">
+                    Pule atributos para ganhar dados!
+                </p>
+            </div>
         </div>
     </div>
 
     <script>
-        // Música (mesmo código)
+        // Áudio
         const bgMusic = document.getElementById('bgMusic');
         const musicToggleBtn = document.getElementById('musicToggleBtn');
+        const rollSound = document.getElementById('rollSound');
         let musicPlaying = false;
         bgMusic.volume = 0.3;
 
@@ -276,7 +237,41 @@
         window.addEventListener('DOMContentLoaded', () => setTimeout(playMusic, 400));
         document.body.addEventListener('click', () => !musicPlaying && playMusic(), { once: true });
 
-        // Estado do jogo
+        // Partículas mágicas
+        function createParticles(x, y, color = '#EACB7A', count = 15) {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = `${x}px`;
+                p.style.top = `${y}px`;
+                p.style.backgroundColor = color;
+                p.style.opacity = '1';
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 3;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+                particles.appendChild(p);
+
+                let posX = x, posY = y;
+                const animate = () => {
+                    posX += vx;
+                    posY += vy;
+                    p.style.left = `${posX}px`;
+                    p.style.top = `${posY}px`;
+                    const opacity = parseFloat(p.style.opacity) - 0.02;
+                    if (opacity <= 0) {
+                        p.remove();
+                        return;
+                    }
+                    p.style.opacity = opacity;
+                    requestAnimationFrame(animate);
+                };
+                animate();
+            }
+        }
+
+        // Stats
         const stats = [
             'Constituição', 'Sabedoria', 'Inteligência', 'Carisma',
             'Força', 'Destreza', 'Ataque', 'Defesa',
@@ -287,19 +282,13 @@
         let gameState = {
             bonusDice: 0,
             results: {},
-            finalized: false,
-            selectedBonusDice: 0, // Contador de dados extras selecionados
-            currentStat: null,     // Atributo atual sendo rolado
-            currentCard: null      // Card atual sendo rolado
+            finalized: false
         };
 
         const statsList = document.getElementById('statsList');
-        const bonusDiceCount = document.getElementById('bonusDiceCount');
-        const finalizeBtn = document.getElementById('finalizeBtn');
         const bonusDiceBox = document.getElementById('bonusDiceBox');
-        const selectionInfo = document.getElementById('selectionInfo');
+        const finalizeBtn = document.getElementById('finalizeBtn');
 
-        // Inicializa os atributos
         function initStats() {
             statsList.innerHTML = '';
             stats.forEach(stat => {
@@ -314,242 +303,27 @@
                             <button class="skip-btn fantasy-btn text-sm px-3 py-1 bg-gray-600">Pular</button>
                         </div>
                     </div>
-                    <div class="dice-container mt-2 flex justify-center items-end gap-2"></div>
+                    <div class="dice-container mt-2 flex justify-center gap-2"></div>
                     <div class="result mt-1 text-center text-primary font-bold hidden"></div>
-                    <div class="dice-results mt-1 text-center"></div>
                 `;
                 statsList.appendChild(card);
 
-                card.querySelector('.roll-btn').addEventListener('click', () => prepareRollStat(stat, card));
-                card.querySelector('.skip-btn').addEventListener('click', () => skipStat(stat, card));
-            });
-        }
+                const rect = card.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
 
-        // Prepara a rolagem - permite selecionar dados extras
-        function prepareRollStat(stat, card) {
-            if (gameState.results[stat] !== undefined || gameState.finalized) return;
-            
-            // Se não há dados extras, rola diretamente
-            if (gameState.bonusDice === 0) {
-                rollStat(stat, card, 0);
-                return;
-            }
-            
-            // Configura estado para seleção
-            gameState.currentStat = stat;
-            gameState.currentCard = card;
-            gameState.selectedBonusDice = 0;
-            
-            // Atualiza a informação de seleção
-            updateSelectionInfo();
-            
-            // Habilita seleção de dados extras
-            enableBonusDiceSelection();
-            
-            // Muda o texto do botão para confirmar
-            const rollBtn = card.querySelector('.roll-btn');
-            rollBtn.textContent = `🎲 Rolar (${gameState.selectedBonusDice} extras)`;
-            rollBtn.onclick = () => confirmRoll(stat, card);
-        }
-
-        // Confirma a rolagem com os dados extras selecionados
-        function confirmRoll(stat, card) {
-            if (gameState.selectedBonusDice > gameState.bonusDice) return;
-            
-            // Remove os dados selecionados do estado do jogo
-            gameState.bonusDice -= gameState.selectedBonusDice;
-            
-            // CORREÇÃO: Remove os dados selecionados visualmente ANTES da rolagem
-            removeSelectedBonusDice();
-            
-            // Desabilita seleção
-            disableBonusDiceSelection();
-            
-            // Restaura o botão original
-            const rollBtn = card.querySelector('.roll-btn');
-            rollBtn.textContent = '🎲 Rolar';
-            rollBtn.onclick = () => prepareRollStat(stat, card);
-            
-            // Executa a rolagem
-            rollStat(stat, card, gameState.selectedBonusDice);
-        }
-
-        // Remove os dados extras selecionados com animação
-        function removeSelectedBonusDice() {
-            const selectedDice = document.querySelectorAll('.bonus-die.selected');
-            
-            selectedDice.forEach(die => {
-                die.classList.add('fade-out');
-                setTimeout(() => {
-                    die.remove();
-                    // CORREÇÃO: Atualiza o contador visual após remover
-                    bonusDiceCount.textContent = gameState.bonusDice;
-                }, 300);
-            });
-        }
-
-        // Habilita a seleção de dados extras
-        function enableBonusDiceSelection() {
-            const bonusDice = document.querySelectorAll('.bonus-die:not(.used)');
-            bonusDice.forEach(die => {
-                die.addEventListener('click', toggleBonusDieSelection);
-                die.style.cursor = 'pointer';
-            });
-        }
-
-        // Desabilita a seleção de dados extras
-        function disableBonusDiceSelection() {
-            const bonusDice = document.querySelectorAll('.bonus-die');
-            bonusDice.forEach(die => {
-                die.removeEventListener('click', toggleBonusDieSelection);
-                die.style.cursor = 'default';
-            });
-        }
-
-        // Alterna a seleção de um dado extra
-        function toggleBonusDieSelection(event) {
-            const die = event.currentTarget;
-            
-            if (die.classList.contains('selected')) {
-                // Deseleciona
-                die.classList.remove('selected');
-                gameState.selectedBonusDice--;
-            } else {
-                // Seleciona
-                die.classList.add('selected');
-                gameState.selectedBonusDice++;
-            }
-            
-            // Atualiza a informação de seleção
-            updateSelectionInfo();
-            
-            // Atualiza o texto do botão de rolar
-            if (gameState.currentCard) {
-                const rollBtn = gameState.currentCard.querySelector('.roll-btn');
-                rollBtn.textContent = `🎲 Rolar (${gameState.selectedBonusDice} extras)`;
-            }
-        }
-
-        // Atualiza a informação de seleção
-        function updateSelectionInfo() {
-            if (gameState.selectedBonusDice > 0) {
-                selectionInfo.textContent = `${gameState.selectedBonusDice} dado(s) selecionado(s)`;
-                selectionInfo.style.color = '#8B5D26';
-            } else {
-                selectionInfo.textContent = 'Clique nos dados para selecioná-los';
-                selectionInfo.style.color = '#8B5D26';
-            }
-        }
-
-        // Função principal de rolagem CORRIGIDA
-        function rollStat(stat, card, use) {
-            if (gameState.results[stat] !== undefined || gameState.finalized) return;
-
-            // Cria contêiner para dados (principal + extras)
-            let diceContainer = card.querySelector('.dice-container');
-            diceContainer.innerHTML = '';
-
-            // Número total de dados a rolar
-            const totalRolls = 1 + use;
-            const rolls = [];
-
-            // Cria e exibe todos os dados (animados)
-            for (let i = 0; i < totalRolls; i++) {
-                const dieEl = document.createElement('div');
-                dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold';
-                dieEl.textContent = '...';
-                dieEl.classList.add('rolling');
-                
-                // Adiciona label para identificar qual dado é qual
-                const dieWrapper = document.createElement('div');
-                dieWrapper.className = 'flex flex-col items-center';
-                
-                if (i === 0) {
-                    const label = document.createElement('div');
-                    label.className = 'dice-result text-xs mb-1';
-                    label.textContent = 'Principal';
-                    dieWrapper.appendChild(label);
-                } else {
-                    const label = document.createElement('div');
-                    label.className = 'dice-result text-xs mb-1';
-                    label.textContent = `Extra ${i}`;
-                    dieWrapper.appendChild(label);
-                }
-                
-                dieWrapper.appendChild(dieEl);
-                diceContainer.appendChild(dieWrapper);
-                rolls.push(dieEl);
-            }
-
-            // Desativa botões
-            card.querySelector('.roll-btn').disabled = true;
-            card.querySelector('.skip-btn').disabled = true;
-
-            // Rolagem após animação
-            setTimeout(() => {
-                const values = [];
-                const resultsContainer = card.querySelector('.dice-results');
-                resultsContainer.innerHTML = '';
-                
-                // Rola os valores
-                rolls.forEach((dieEl, idx) => {
-                    const val = Math.floor(Math.random() * 10) + 1;
-                    values.push(val);
-                    dieEl.textContent = val;
-                    dieEl.classList.remove('rolling');
-                    
-                    // Adiciona resultado individual
-                    const resultText = document.createElement('div');
-                    resultText.className = 'dice-result';
-                    if (idx === 0) {
-                        resultText.textContent = `Dado principal: ${val}`;
-                    } else {
-                        resultText.textContent = `Dado extra ${idx}: ${val}`;
-                    }
-                    resultsContainer.appendChild(resultText);
+                card.querySelector('.roll-btn').addEventListener('click', () => rollStat(stat, card));
+                card.querySelector('.skip-btn').addEventListener('click', () => {
+                    skipStat(stat, card);
+                    createParticles(centerX, centerY, '#FFD700', 20);
                 });
-
-                // CORREÇÃO: Soma o dado principal com os extras em vez de pegar apenas o máximo
-                const mainDie = values[0]; // Primeiro valor é sempre o dado principal
-                const extraDice = values.slice(1); // Restante são dados extras
-                
-                // Soma todos os valores (principal + extras)
-                const finalValue = values.reduce((sum, val) => sum + val, 0);
-                
-                // Destaca o valor final calculado
-                const finalResult = document.createElement('div');
-                finalResult.className = 'dice-result max-value';
-                finalResult.textContent = `🎯 Valor final: ${mainDie} (principal) + ${extraDice.join(' + ')} (extras) = ${finalValue}`;
-                resultsContainer.appendChild(finalResult);
-                
-                card.querySelector('.result').textContent = `+${finalValue}`;
-                card.querySelector('.result').classList.remove('hidden');
-                gameState.results[stat] = finalValue;
-                card.classList.add('rolled');
-                checkFinalize();
-                
-                // Limpa estado de seleção
-                gameState.currentStat = null;
-                gameState.currentCard = null;
-                gameState.selectedBonusDice = 0;
-                selectionInfo.textContent = '';
-                
-                // CORREÇÃO: Re-renderiza os dados extras para remover os usados
-                renderBonusDice();
-            }, 500);
+            });
         }
 
-        // CORREÇÃO: Adicionar esta função para melhor controle dos dados extras
-        function updateBonusDiceDisplay() {
-            bonusDiceCount.textContent = gameState.bonusDice;
-            renderBonusDice();
-        }
-
-        // Modificar a função skipStat para usar a nova função de atualização
         function skipStat(stat, card) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
             gameState.bonusDice++;
-            updateBonusDiceDisplay(); // Usa a função centralizada
+            renderBonusDice();
             card.classList.add('skipped');
             card.querySelector('.result').textContent = 'Pulado ✨';
             card.querySelector('.result').classList.remove('hidden');
@@ -557,15 +331,72 @@
             checkFinalize();
         }
 
-        // Nova função: renderiza os dados extras no box lateral
         function renderBonusDice() {
             bonusDiceBox.innerHTML = '';
             for (let i = 0; i < gameState.bonusDice; i++) {
                 const die = document.createElement('div');
                 die.className = 'bonus-die';
-                die.textContent = '10'; // Representa d10
+                die.textContent = '10';
                 bonusDiceBox.appendChild(die);
             }
+        }
+
+        function rollStat(stat, card) {
+            if (gameState.results[stat] !== undefined || gameState.finalized) return;
+
+            const use = gameState.bonusDice > 0 
+                ? parseInt(prompt(`Você tem ${gameState.bonusDice} dado(s) extra(s).\nQuantos deseja usar aqui? (0-${gameState.bonusDice})`, "0")) || 0
+                : 0;
+
+            if (use < 0 || use > gameState.bonusDice) return;
+
+            gameState.bonusDice -= use;
+            renderBonusDice();
+
+            const diceContainer = card.querySelector('.dice-container');
+            diceContainer.innerHTML = '';
+
+            const totalRolls = 1 + use;
+            const diceEls = [];
+            for (let i = 0; i < totalRolls; i++) {
+                const dieEl = document.createElement('div');
+                dieEl.className = 'dice w-12 h-12 flex items-center justify-center text-lg font-bold';
+                dieEl.textContent = '...';
+                dieEl.classList.add('rolling');
+                diceContainer.appendChild(dieEl);
+                diceEls.push(dieEl);
+            }
+
+            card.querySelector('.roll-btn').disabled = true;
+            card.querySelector('.skip-btn').disabled = true;
+
+            // Som de rolagem
+            rollSound.currentTime = 0;
+            rollSound.play().catch(() => {});
+
+            setTimeout(() => {
+                const values = [];
+                diceEls.forEach(dieEl => {
+                    const val = Math.floor(Math.random() * 10) + 1;
+                    values.push(val);
+                    dieEl.textContent = val;
+                    dieEl.classList.remove('rolling');
+                });
+
+                const finalValue = Math.max(...values);
+                card.querySelector('.result').textContent = `+${finalValue}`;
+                card.querySelector('.result').classList.remove('hidden');
+                gameState.results[stat] = finalValue;
+                card.classList.add('rolled');
+
+                // Partículas ao usar dados extras
+                if (use > 0) {
+                    const rect = card.getBoundingClientRect();
+                    createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, '#8B5D26', 10);
+                }
+
+                checkFinalize();
+            }, 500);
         }
 
         function checkFinalize() {
@@ -603,7 +434,6 @@
 
         // Iniciar
         initStats();
-        bonusDiceCount.textContent = gameState.bonusDice;
         renderBonusDice();
     </script>
 </body>
