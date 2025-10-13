@@ -30,11 +30,7 @@
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=MedievalSharp&display=swap" rel="stylesheet">
     <style>
         body {
-            background-image: url('image.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background: linear-gradient(135deg, #2c200b 0%, #1e1306 100%);
             min-height: 100vh;
             font-family: 'MedievalSharp', 'UnifrakturCook', cursive, serif;
         }
@@ -45,9 +41,7 @@
         }
         .fantasy-frame {
             border: 10px solid #EACB7A;
-            border-image: url('Map.png') 40 stretch;
             box-shadow: 0 8px 32px 0 rgba(139,93,38,0.44), 0 0 0 20px rgba(234,203,122,0.08);
-            background: url('Map.png') repeat;
         }
         .fantasy-title {
             font-family: 'UnifrakturCook', cursive;
@@ -160,7 +154,6 @@
             color: #3C2C09;
             font-weight: bold;
         }
-        /* Música */
         @keyframes pulseGlow {
             0% {
               box-shadow: 0 0 10px 2px rgba(234, 203, 122, 0.4);
@@ -201,24 +194,17 @@
     </style>
 </head>
 <body>
-    <!-- Botão de música -->
     <button id="musicToggleBtn" class="music-btn" aria-label="Tocar/Pausar Música">🔊</button>
-    <!-- Música de fundo -->
     <audio id="bgMusic" loop preload="auto">
         <source src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg" type="audio/ogg">
-        Seu navegador não suporta o elemento de áudio.
     </audio>
     <div class="container mx-auto px-2 py-8 max-w-6xl overlay fantasy-frame">
         <div class="text-center mb-8">
             <h1 class="fantasy-title mb-2">✨ Um Dado por Atributo ✨</h1>
             <p class="fantasy-subtitle">Role um d10 para cada atributo — ou pule e ganhe um dado extra!</p>
-            <div class="mt-3">
-                <a href="index.html" class="fantasy-btn px-5 py-2 inline-block text-lg">← Voltar ao Modo Clássico</a>
-            </div>
             <div class="fantasy-divider" style="border-top: 3px dashed #EACB7A; margin: 1.5rem auto; width: 80%;"></div>
         </div>
         <div class="grid lg:grid-cols-3 gap-6">
-          <!-- Coluna 1: Atributos -->
           <div class="lg:col-span-2">
             <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
                 <div id="statsList" class="space-y-3 mb-6"></div>
@@ -227,7 +213,6 @@
                 </button>
             </div>
           </div>
-          <!-- Coluna 2: Box de Dados Extras -->
           <div class="bg-parchment rounded-2xl shadow-xl p-6 border-2 border-accent" style="background:rgba(249,246,225,0.92)">
             <h3 class="text-xl font-bold mb-4 text-center text-primary" style="font-family:'UnifrakturCook',cursive;">🎲 Dados Extras</h3>
             <div id="bonusDiceBox" class="flex flex-wrap justify-center gap-3 min-h-[80px]"></div>
@@ -239,7 +224,6 @@
         </div>
     </div>
     <script>
-        // Música aprimorada (animação e controle)
         const bgMusic = document.getElementById('bgMusic');
         const musicToggleBtn = document.getElementById('musicToggleBtn');
         let musicPlaying = false;
@@ -271,30 +255,29 @@
         });
 
         window.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                playMusic();
-            }, 500);
+            setTimeout(() => playMusic(), 500);
         });
 
         document.body.addEventListener('click', function() {
             if (!musicPlaying) playMusic();
         }, { once: true });
 
-        // Estado do jogo
         const stats = [
             'Constituição', 'Sabedoria', 'Inteligência', 'Carisma',
             'Força', 'Destreza', 'Ataque', 'Defesa',
             'Velocidade', 'Mana', 'Poder Mágico', 'Resistência Mágica',
             'Sorte', 'Arcanismo'
         ];
+        
         let gameState = {
-            bonusDice: [], // array de dados extras
+            bonusDice: [],
             results: {},
             finalized: false,
-            selectedBonusDice: [], // índices dos dados extras selecionados
+            selectedBonusDice: [],
             currentStat: null,
             currentCard: null
         };
+        
         const statsList = document.getElementById('statsList');
         const bonusDiceBox = document.getElementById('bonusDiceBox');
         const selectionInfo = document.getElementById('selectionInfo');
@@ -327,11 +310,13 @@
 
         function skipStat(stat, card) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
-            gameState.bonusDice.push({ used: false });
+            gameState.bonusDice.push({ value: 10, used: false });
             updateBonusDiceDisplay();
             card.classList.add('skipped');
             card.querySelector('.result').textContent = 'Pulado ✨';
             card.querySelector('.result').classList.remove('hidden');
+            card.querySelector('.roll-btn').disabled = true;
+            card.querySelector('.skip-btn').disabled = true;
             gameState.results[stat] = null;
             checkFinalize();
         }
@@ -339,7 +324,7 @@
         function renderBonusDice() {
             bonusDiceBox.innerHTML = '';
             gameState.bonusDice.forEach((die, idx) => {
-                if (!die.used) {
+                if (die.used === false) {
                     const dieEl = document.createElement('div');
                     dieEl.className = 'bonus-die';
                     dieEl.textContent = '10';
@@ -365,7 +350,6 @@
             selectionInfo.textContent = 'Clique nos dados extras ao lado para selecionar!';
             renderBonusDice();
 
-            // Botão rolar muda de função
             const rollBtn = card.querySelector('.roll-btn');
             rollBtn.textContent = `🎲 Rolar`;
             rollBtn.onclick = () => confirmRoll(stat, card);
@@ -390,16 +374,21 @@
 
         function confirmRoll(stat, card) {
             const extraIndices = [...gameState.selectedBonusDice];
+            
             extraIndices.forEach(idx => {
-                gameState.bonusDice[idx].used = true;
+                if (gameState.bonusDice[idx]) {
+                    gameState.bonusDice[idx].used = true;
+                }
             });
+            
             rollStat(stat, card, extraIndices);
+            
             gameState.selectedBonusDice = [];
             selectionInfo.textContent = '';
+            
             updateBonusDiceDisplay();
         }
 
-        // CORRIGIDA: Agora soma todos os dados rolados (principal + extras)
         function rollStat(stat, card, extraIndices=[]) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
 
@@ -410,7 +399,6 @@
             diceContainer.style.alignItems = 'center';
             diceContainer.style.gap = '1rem';
 
-            // Quantos dados serão rolados? 1 principal + extras selecionados
             const totalRolls = 1 + extraIndices.length;
             const rolls = [];
             for (let i = 0; i < totalRolls; i++) {
@@ -451,14 +439,19 @@
                     resultsContainer.appendChild(resultText);
                 });
 
-                // Soma todos os dados rolados!
                 const mainDie = values[0];
                 const extraDice = values.slice(1);
                 const finalValue = values.reduce((sum, val) => sum + val, 0);
 
                 const finalResult = document.createElement('div');
                 finalResult.className = 'dice-result max-value';
-                finalResult.textContent = `🎯 Valor final: ${mainDie} (principal) + ${extraDice.join(' + ')} (extras) = ${finalValue}`;
+                
+                if (extraDice.length > 0) {
+                    finalResult.textContent = `🎯 Valor final: ${mainDie} + ${extraDice.join(' + ')} = ${finalValue}`;
+                } else {
+                    finalResult.textContent = `🎯 Valor final: ${finalValue}`;
+                }
+                
                 resultsContainer.appendChild(finalResult);
 
                 card.querySelector('.result').textContent = `+${finalValue}`;
@@ -497,11 +490,12 @@
             `;
             document.body.appendChild(modal);
         }
+        
         finalizeBtn.addEventListener('click', () => {
             gameState.finalized = true;
             showSummary();
         });
-        // Iniciar
+        
         initStats();
         updateBonusDiceDisplay();
     </script>
