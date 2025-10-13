@@ -180,6 +180,15 @@
             text-align: center;
             margin-top: 0.5rem;
         }
+
+        .fade-out {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0); }
+        }
     </style>
 </head>
 <body>
@@ -335,6 +344,9 @@
         function confirmRoll(stat, card) {
             if (gameState.selectedBonusDice > gameState.bonusDice) return;
             
+            // Remove os dados selecionados visualmente com animação
+            removeSelectedBonusDice();
+            
             // Desabilita seleção
             disableBonusDiceSelection();
             
@@ -345,6 +357,18 @@
             
             // Executa a rolagem
             rollStat(stat, card, gameState.selectedBonusDice);
+        }
+
+        // Remove os dados extras selecionados com animação
+        function removeSelectedBonusDice() {
+            const selectedDice = document.querySelectorAll('.bonus-die.selected');
+            
+            selectedDice.forEach(die => {
+                die.classList.add('fade-out');
+                setTimeout(() => {
+                    die.remove();
+                }, 300);
+            });
         }
 
         // Habilita a seleção de dados extras
@@ -404,10 +428,9 @@
         function rollStat(stat, card, use) {
             if (gameState.results[stat] !== undefined || gameState.finalized) return;
 
-            // Atualiza estado
+            // Atualiza estado - remove os dados extras usados
             gameState.bonusDice -= use;
             bonusDiceCount.textContent = gameState.bonusDice;
-            renderBonusDice();
 
             // Cria contêiner para dados (principal + extras)
             let diceContainer = card.querySelector('.dice-container');
@@ -460,6 +483,9 @@
                 gameState.currentCard = null;
                 gameState.selectedBonusDice = 0;
                 selectionInfo.textContent = '';
+                
+                // Re-renderiza os dados extras para garantir consistência
+                renderBonusDice();
             }, 500);
         }
 
