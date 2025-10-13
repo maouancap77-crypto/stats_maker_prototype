@@ -163,7 +163,7 @@
                         <li>• Comece com <span class="text-primary">2 dados místicos de 16 faces</span></li>
                         <li>• Role primeiro, depois poderá invocar mais dados</li>
                         <li>• 3º dado: <span class="text-accent">20+ pontos</span> na rolagem</li>
-                        <li>• 4º dado: <span class="text-accent">40+ pontos</span> na rolagem</li>
+                        <li>• 4º dado: <span class="text-accent">30+ pontos</span> na rolagem</li>
                         <li>• Máximo: <span class="text-primary">4 dados</span> (4-64 pontos)</li>
                     </ul>
                 </div>
@@ -337,11 +337,11 @@
                     addDiceBtn.disabled = true;
                 }
             } else if (diceCount === 3) {
-                if (currentPoints >= 40) {
-                    addDiceBtn.textContent = 'Adicionar 4º Dado (40+ pontos)';
+                if (currentPoints >= 30) {
+                    addDiceBtn.textContent = 'Adicionar 4º Dado (30+ pontos)';
                     addDiceBtn.disabled = false;
                 } else {
-                    addDiceBtn.textContent = `Precisa de 40+ pontos (atual: ${currentPoints})`;
+                    addDiceBtn.textContent = `Precisa de 30+ pontos (atual: ${currentPoints})`;
                     addDiceBtn.disabled = true;
                 }
             }
@@ -376,7 +376,7 @@
             const diceCount = gameState.activeDice;
             let canAdd = false;
             if (diceCount === 2 && currentPoints >= 20) canAdd = true;
-            else if (diceCount === 3 && currentPoints >= 40) canAdd = true;
+            else if (diceCount === 3 && currentPoints >= 30) canAdd = true;
             if (canAdd && diceCount < 4 && gameState.rollCount > 0) {
                 gameState.activeDice++;
                 updateDiceDisplay();
