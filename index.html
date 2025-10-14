@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Criação de Personagem - RPG Fantasia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com  "></script>
     <script>
         tailwind.config = {
             theme: {
@@ -133,6 +133,24 @@
             background: #EACB7A;
             color: #8B5D26;
         }
+        /* Adicionando a animação de brilho do botão de música */
+        .music-btn.playing {
+            animation: pulseGlow 1.8s infinite ease-in-out;
+        }
+        @keyframes pulseGlow {
+            0% {
+              box-shadow: 0 0 10px 2px rgba(234, 203, 122, 0.4);
+              transform: scale(1);
+            }
+            50% {
+              box-shadow: 0 0 22px 6px rgba(234, 203, 122, 0.7);
+              transform: scale(1.07);
+            }
+            100% {
+              box-shadow: 0 0 10px 2px rgba(234, 203, 122, 0.4);
+              transform: scale(1);
+            }
+        }
     </style>
 </head>
 <body>
@@ -140,10 +158,10 @@
     <button id="musicToggleBtn" class="music-btn" aria-label="Tocar/Pausar Música">🔊</button>
     <!-- Áudio de fundo -->
     <audio id="bgMusic" loop preload="auto">
-        <source src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg" type="audio/ogg">
-        Seu navegador não suporta o elemento de áudio. <a href="https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg">Baixe o arquivo aqui</a>.
+        <source src="  https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg  " type="audio/ogg">
+        Seu navegador não suporta o elemento de áudio. <a href="https://upload.wikimedia.org/wikipedia/commons/1/1b/Vindsvept_-_Elder_Magic_%28Fantasy_Music%29.ogg  ">Baixe o arquivo aqui</a>.
     </audio>
-    
+
     <div class="container mx-auto px-2 py-8 max-w-5xl overlay fantasy-frame">
         <!-- Header -->
         <div class="text-center mb-10">
@@ -231,15 +249,21 @@
             bgMusic.play().then(() => {
                 musicPlaying = true;
                 musicToggleBtn.textContent = '🔊';
+                // Adiciona a classe de animação quando a música começa a tocar
+                musicToggleBtn.classList.add('playing');
             }).catch(() => {
                 musicPlaying = false;
                 musicToggleBtn.textContent = '🔈';
+                // Remove a classe de animação se a reprodução falhar
+                musicToggleBtn.classList.remove('playing');
             });
         }
         function pauseMusic() {
             bgMusic.pause();
             musicPlaying = false;
             musicToggleBtn.textContent = '🔈';
+            // Remove a classe de animação quando a música é pausada
+            musicToggleBtn.classList.remove('playing');
         }
         // Botão música
         musicToggleBtn.addEventListener('click', function() {
