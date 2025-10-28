@@ -87,6 +87,7 @@ Inspire-se, crie e compartilhe magia! ✨
 > — **Mestre do RPG Fantasia**
 
 ---
+https://maouancap77-crypto.github.io/stats_maker_prototype/
 
 **Pronto para criar seu herói?**  
 **Abra `index.html` e que o expurgo dos hereges e as chamas da justiça e do zelo guiem sua jornada!** 🐉
