@@ -171,7 +171,7 @@
     <div class="container mx-auto px-2 py-8 max-w-5xl overlay fantasy-frame">
         <div class="text-center mb-10">
             <h1 class="fantasy-title mb-2">✨ Um Dado por Atributo ✨</h1>
-            <p class="fantasy-subtitle">Role um d10 para cada atributo e construa seu personagem!</p>
+            <p class="fantasy-subtitle">Role um d12 para cada atributo e construa seu personagem!</p>
             <div class="fantasy-divider"></div>
         </div>
         <div class="text-center mb-4">
@@ -249,7 +249,7 @@
                 card.innerHTML = `
                     <div class="flex justify-between items-center">
                         <span class="font-bold text-secondary" style="font-family:'UnifrakturCook',cursive; font-size:1.25rem;">${stat}</span>
-                        <button class="roll-btn fantasy-btn text-sm px-4 py-2">🎲 Rolar d10</button>
+                        <button class="roll-btn fantasy-btn text-sm px-4 py-2">🎲 Rolar d12</button>
                     </div>
                     <div class="dice-container mt-3 hidden"></div>
                     <div class="result mt-2 text-center text-primary font-bold hidden" style="font-family:'MedievalSharp',cursive; font-size:1.5rem;"></div>
@@ -279,7 +279,7 @@
             card.querySelector('.roll-btn').disabled = true;
 
             setTimeout(() => {
-                const value = Math.floor(Math.random() * 10) + 1;
+                const value = Math.floor(Math.random() * 12) + 1;
                 dieEl.textContent = value;
                 dieEl.classList.remove('rolling');
 
